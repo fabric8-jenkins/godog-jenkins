@@ -1,0 +1,6 @@
+package: github.com/fabric8-jenkins/godog-jenkins
+import:
+- package: github.com/DATA-DOG/godog
+- package: github.com/fabric8io/golang-jenkins
+- package: github.com/cucumber/gherkin-go
+  version: ^4.0.0
