@@ -8,17 +8,17 @@ Go to http://your.jenkins.io/me/configure, in the __API Token__ section click `S
 
 Then set the following environment variables:
 ```
-export GINKGO_JENKINS_URL=http://your.jenkins.io
-export GINKGO_JENKINS_TOKEN=abcd1234
-export GINKGO_JENKINS_USERNAME=jrawlings
+export BDD_JENKINS_URL=http://your.jenkins.io
+export BDD_JENKINS_TOKEN=abcd1234
+export BDD_JENKINS_USERNAME=jrawlings
 ```
-To run clone this repo and run:
+Now run:
 ```
 go get github.com/DATA-DOG/godog/cmd/godog
 go get github.com/fabric8-jenkins/godog-jenkins
 cd $GOPATH/src/github.com/fabric8-jenkins/godog-jenkins/jenkins/
 ```
-Now run:
+And trigger the tests:
 ```
 godog
 ```

@@ -7,17 +7,17 @@ import (
 )
 
 func GetJenkinsClient() (*gojenkins.Jenkins, error){
-	url := os.Getenv("GINKGO_JENKINS_URL")
+	url := os.Getenv("BDD_JENKINS_URL")
 	if url == ""{
-		return nil, errors.New("no GINKGO_JENKINS_URL env var set")
+		return nil, errors.New("no BDD_JENKINS_URL env var set")
 	}
-	username := os.Getenv("GINKGO_JENKINS_USERNAME")
+	username := os.Getenv("BDD_JENKINS_USERNAME")
 	if username == ""{
-		return nil, errors.New("no GINKGO_JENKINS_USERNAME env var set")
+		return nil, errors.New("no BDD_JENKINS_USERNAME env var set")
 	}
-	token := os.Getenv("GINKGO_JENKINS_TOKEN")
+	token := os.Getenv("BDD_JENKINS_TOKEN")
 	if token == ""{
-		return nil, errors.New("no GINKGO_JENKINS_TOKEN env var set")
+		return nil, errors.New("no BDD_JENKINS_TOKEN env var set")
 	}
 
 	auth := &gojenkins.Auth{
