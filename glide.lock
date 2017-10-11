@@ -1,5 +1,5 @@
-hash: c927f3cc8de2ffd8a6bbc8fb0667b6bb42d14ea01ddd518cd5164884e27c47b1
-updated: 2017-10-09T22:32:26.32641398+01:00
+hash: 1953bdac095ec723221547d5696c2b67699a04205bf22999256e57f12d27216a
+updated: 2017-10-11T13:05:19.349464412+01:00
 imports:
 - name: github.com/cucumber/gherkin-go
   version: b4fe8f6d1dc26a0b1fb8e677244aa8f775a944f3
@@ -8,6 +8,6 @@ imports:
   subpackages:
   - colors
   - gherkin
-- name: github.com/fabric8io/golang-jenkins
-  version: a5f5e97dbb926cc04f28ea00ce616bdf2086e97b
+- name: github.com/fabric8-jenkins/golang-jenkins
+  version: 70f040912b0f104c073dac50d6cedcce532842e8
 testImports: []

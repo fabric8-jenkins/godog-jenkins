@@ -1,22 +1,22 @@
 package utils
 
 import (
-	"github.com/fabric8io/golang-jenkins"
-	"os"
 	"errors"
+	"github.com/fabric8-jenkins/golang-jenkins"
+	"os"
 )
 
-func GetJenkinsClient() (*gojenkins.Jenkins, error){
+func GetJenkinsClient() (*gojenkins.Jenkins, error) {
 	url := os.Getenv("BDD_JENKINS_URL")
-	if url == ""{
+	if url == "" {
 		return nil, errors.New("no BDD_JENKINS_URL env var set")
 	}
 	username := os.Getenv("BDD_JENKINS_USERNAME")
-	if username == ""{
+	if username == "" {
 		return nil, errors.New("no BDD_JENKINS_USERNAME env var set")
 	}
 	token := os.Getenv("BDD_JENKINS_TOKEN")
-	if token == ""{
+	if token == "" {
 		return nil, errors.New("no BDD_JENKINS_TOKEN env var set")
 	}
 

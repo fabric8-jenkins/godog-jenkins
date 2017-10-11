@@ -251,6 +251,15 @@ func (jenkins *Jenkins) CreateJob(jobItem JobItem, jobName string) error {
 	return jenkins.postXml("/createItem", params, reader, nil)
 }
 
+// Create a new job
+func (jenkins *Jenkins) CreateJobWithXML(jobItemXml string, jobName string) error {
+
+	reader := bytes.NewReader([]byte(jobItemXml))
+	params := url.Values{"name": []string{jobName}}
+
+	return jenkins.postXml("/createItem", params, reader, nil)
+}
+
 // Delete a job
 func (jenkins *Jenkins) DeleteJob(job Job) error {
 	return jenkins.post(fmt.Sprintf("/job/%s/doDelete", job.Name), nil, nil)
