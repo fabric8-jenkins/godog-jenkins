@@ -3,13 +3,13 @@ package jenkins
 import (
 	"fmt"
 	"github.com/DATA-DOG/godog"
-	"github.com/fabric8-jenkins/golang-jenkins/utils"
+	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
 func thereAreNoJobsCalled(jobName string) error {
 	jenkins, err := utils.GetJenkinsClient()
 	if err != nil {
-		return fmt.Errorf("error getting a Jenkins client", err)
+		return fmt.Errorf("error getting a Jenkins client %v", err)
 	}
 
 	job, err := jenkins.GetJob(jobName)
@@ -22,7 +22,7 @@ func thereAreNoJobsCalled(jobName string) error {
 func iImportTheGitHubOrganisation(jobName string) error {
 	jenkins, err := utils.GetJenkinsClient()
 	if err != nil {
-		return fmt.Errorf("error getting a Jenkins client", err)
+		return fmt.Errorf("error getting a Jenkins client %v", err)
 	}
 
 	jobXML, err := utils.GetFileAsString("resources/org_job.xml")
@@ -32,7 +32,7 @@ func iImportTheGitHubOrganisation(jobName string) error {
 
 	err = jenkins.CreateJobWithXML(jobXML, jobName)
 	if err != nil {
-		return fmt.Errorf("error creating organisation Job", err)
+		return fmt.Errorf("error creating organisation Job %v", err)
 	}
 	return nil
 }
@@ -40,7 +40,7 @@ func iImportTheGitHubOrganisation(jobName string) error {
 func thereShouldBeAJobAndMoreThanMultibranchJob(jobName string, numberOfMultiBranchProjects int) error {
 	jenkins, err := utils.GetJenkinsClient()
 	if err != nil {
-		return fmt.Errorf("error getting a Jenkins client", err)
+		return fmt.Errorf("error getting a Jenkins client %v", err)
 	}
 	job, err := jenkins.GetJob(jobName)
 	if err != nil {
