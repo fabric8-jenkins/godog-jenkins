@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/DATA-DOG/godog"
+	"path/filepath"
 )
 
 type forkFeature struct {
@@ -14,11 +15,22 @@ type forkFeature struct {
 }
 
 func (f *forkFeature) thereIsNoForkOf(repo string) error {
-	return nil
+	gitcmder := f.GitCommander
+	err := gitcmder.DeleteWorkDir()
+	if err != nil {
+		return err
+	}
+
+	path := filepath.Join(f.GitCommander.Dir, repo)
+	return AssertFileDoesNotExist(path)
 }
 
-func (f *forkFeature) iForkTheGitHubOrganisationToUser(originalRepoName string, newUser string) error {
+func (f *forkFeature) iForkTheGitHubOrganisationToTheCurrentUser(originalRepoName string) error {
 	userRepo, err := ParseUserRepositoryName(originalRepoName)
+	if err != nil {
+		return err
+	}
+	currentGithubUser, err := mandatoryEnvVar("GITHUB_USER")
 	if err != nil {
 		return err
 	}
@@ -27,10 +39,6 @@ func (f *forkFeature) iForkTheGitHubOrganisationToUser(originalRepoName string, 
 		return err
 	}
 	gitcmder := f.GitCommander
-	err = gitcmder.DeleteWorkDir()
-	if err != nil {
-		return err
-	}
 
 	upstreamRepo, err := GetRepository(client, userRepo.Organisation, userRepo.Repository)
 	if err != nil {
@@ -38,7 +46,7 @@ func (f *forkFeature) iForkTheGitHubOrganisationToUser(originalRepoName string, 
 	}
 
 	// now lets fork it
-	repo, err := ForkRepositoryOrRevertMasterInFork(client, userRepo, newUser)
+	repo, err := ForkRepositoryOrRevertMasterInFork(client, userRepo, currentGithubUser)
 	if err != nil {
 		return err
 	}
@@ -67,7 +75,7 @@ func (f *forkFeature) iForkTheGitHubOrganisationToUser(originalRepoName string, 
 	return nil
 }
 
-func (f *forkFeature) thereShouldBeAForkWhichHasTheSameLastCommitAs(forkedRepo, originalRepo string) error {
+func (f *forkFeature) thereShouldBeAForkForTheCurrentUserWhichHasTheSameLastCommitAs(forkedRepo string) error {
 	gitcmder := f.GitCommander
 	upstreamSha, err := gitcmder.GetLastCommitSha(f.UpstreamDir)
 	if err != nil {
@@ -94,6 +102,6 @@ func FeatureContext(s *godog.Suite) {
 	}
 
 	s.Step(`^there is no fork of "([^"]*)"$`, f.thereIsNoForkOf)
-	s.Step(`^I fork the "([^"]*)" GitHub organisation to user "([^"]*)"$`, f.iForkTheGitHubOrganisationToUser)
-	s.Step(`^there should be a "([^"]*)" fork which has the same last commit as "([^"]*)"$`, f.thereShouldBeAForkWhichHasTheSameLastCommitAs)
+	s.Step(`^I fork the "([^"]*)" GitHub organisation to the current user$`, f.iForkTheGitHubOrganisationToTheCurrentUser)
+	s.Step(`^there should be a fork for the current user which has the same last commit as "([^"]*)"$`, f.thereShouldBeAForkForTheCurrentUserWhichHasTheSameLastCommitAs)
 }

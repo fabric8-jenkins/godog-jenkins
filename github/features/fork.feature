@@ -5,6 +5,6 @@ Feature: fork GitHub Repo
 
   Scenario: Fork repository
     Given there is no fork of "fabric8-quickstarts/spring-boot-webmvc"
-    When I fork the "fabric8-quickstarts/spring-boot-webmvc" GitHub organisation to user "jstrachan-testing"
-    Then there should be a "jstrachan-testing/spring-boot-webmvc" fork which has the same last commit as "fabric8-quickstarts/spring-boot-webmvc"
+    When I fork the "fabric8-quickstarts/spring-boot-webmvc" GitHub organisation to the current user
+    Then there should be a fork for the current user which has the same last commit as "fabric8-quickstarts/spring-boot-webmvc"
 
