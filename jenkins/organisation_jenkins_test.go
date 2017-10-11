@@ -1,29 +1,10 @@
 package jenkins
 
 import (
-	"os"
-	"testing"
-	"time"
-
 	"fmt"
 	"github.com/DATA-DOG/godog"
 	"github.com/fabric8-jenkins/golang-jenkins/utils"
 )
-
-func TestMain(m *testing.M) {
-	status := godog.RunWithOptions("godogs", func(s *godog.Suite) {
-		FeatureContext(s)
-	}, godog.Options{
-		Format:    "progress",
-		Paths:     []string{"features"},
-		Randomize: time.Now().UTC().UnixNano(), // randomize scenario execution order
-	})
-
-	if st := m.Run(); st > status {
-		status = st
-	}
-	os.Exit(status)
-}
 
 func thereAreNoJobsCalled(jobName string) error {
 	jenkins, err := utils.GetJenkinsClient()
@@ -35,7 +16,7 @@ func thereAreNoJobsCalled(jobName string) error {
 	if err != nil {
 		return nil
 	}
-	return fmt.Errorf("error for existing job ", job.Name)
+	return fmt.Errorf("error found existing job %s", job.Name)
 }
 
 func iImportTheGitHubOrganisation(jobName string) error {
@@ -56,11 +37,19 @@ func iImportTheGitHubOrganisation(jobName string) error {
 	return nil
 }
 
-func thereShouldBeAJobAndMoreThanMultibranchJob(arg1 string, arg2 int) error {
-	return godog.ErrPending
+func thereShouldBeAJobAndMoreThanMultibranchJob(jobName string, numberOfMultiBranchProjects int) error {
+	jenkins, err := utils.GetJenkinsClient()
+	if err != nil {
+		return fmt.Errorf("error getting a Jenkins client", err)
+	}
+	job, err := jenkins.GetJob(jobName)
+	if err != nil {
+		fmt.Errorf("error found existing job %s ", job.Name)
+	}
+	return nil
 }
 
-func FeatureContext(s *godog.Suite) {
+func ImportOrganisationFeatureContext(s *godog.Suite) {
 	s.Step(`^there are no jobs called "([^"]*)"$`, thereAreNoJobsCalled)
 	s.Step(`^I import the "([^"]*)" GitHub organisation$`, iImportTheGitHubOrganisation)
 	s.Step(`^there should be a "([^"]*)" job and more than (\d+) multibranch job$`, thereShouldBeAJobAndMoreThanMultibranchJob)
