@@ -4,6 +4,8 @@ import (
 	"errors"
 	"github.com/fabric8-jenkins/golang-jenkins"
 	"os"
+	"io/ioutil"
+	"fmt"
 )
 
 func GetJenkinsClient() (*gojenkins.Jenkins, error) {
@@ -25,4 +27,13 @@ func GetJenkinsClient() (*gojenkins.Jenkins, error) {
 		ApiToken: token,
 	}
 	return gojenkins.NewJenkins(auth, url), nil
+}
+
+func GetFileAsString(path string) (string, error) {
+	buf, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("No file found at path %s", path)
+	}
+
+	return string(buf), nil
 }
