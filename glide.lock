@@ -1,5 +1,5 @@
-hash: 293ad6cd59eb4c31598087a8610f2d10ec14d04c6602ee022f9907e497a751f6
-updated: 2017-10-11T15:39:22.664634+01:00
+hash: 785dee6d9c4cda36873fb9f110a179f2c93788625aa01ae3df7b495739dee1af
+updated: 2017-10-11T16:20:56.154084+01:00
 imports:
 - name: github.com/cucumber/gherkin-go
   version: b4fe8f6d1dc26a0b1fb8e677244aa8f775a944f3
@@ -12,4 +12,10 @@ imports:
   version: 70f040912b0f104c073dac50d6cedcce532842e8
 - name: github.com/google/go-github
   version: 5c45bca952b96dedace6c307caff915483013003
+  subpackages:
+  - github
+- name: github.com/google/go-querystring
+  version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
+  subpackages:
+  - query
 testImports: []
