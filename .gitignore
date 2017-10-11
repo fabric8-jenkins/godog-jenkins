@@ -75,3 +75,4 @@ migration/sqlbindata_test.go
 
 # Ignore artifacts directory
 bin/
+work

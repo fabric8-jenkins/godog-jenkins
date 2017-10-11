@@ -265,6 +265,11 @@ func (jenkins *Jenkins) DeleteJob(job Job) error {
 	return jenkins.post(fmt.Sprintf("/job/%s/doDelete", job.Name), nil, nil)
 }
 
+// Trigger a job
+func (jenkins *Jenkins) TriggerJob(job Job) error {
+	return jenkins.post(fmt.Sprintf("/job/%s/build", job.Name), nil, nil)
+}
+
 // Update a job
 func (jenkins *Jenkins) UpdateJob(jobItem JobItem, jobName string) error {
 	jobItemXml, err := JobToXml(jobItem)

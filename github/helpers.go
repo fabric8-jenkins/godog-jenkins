@@ -10,7 +10,7 @@ import (
 
 type UserRepositoryName struct {
 	Organisation string
-	Repository string
+	Repository   string
 }
 
 func (r *UserRepositoryName) String() string {
@@ -26,18 +26,18 @@ func ParseUserRepositoryName(text string) (*UserRepositoryName, error) {
 	}
 	return &UserRepositoryName{
 		Organisation: values[0],
-		Repository: values[1],
+		Repository:   values[1],
 	}, nil
 }
 
 // CreateGitHubClient creates a new GitHub client
 func CreateGitHubClient() (*github.Client, error) {
 	/*
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: "... your access token ..."},
-	)
-	tc := oauth2.NewClient(ctx, ts)
+		ctx := context.Background()
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: "... your access token ..."},
+		)
+		tc := oauth2.NewClient(ctx, ts)
 	*/
 
 	user, err := mandatoryEnvVar("GITHUB_USER")
@@ -51,10 +51,14 @@ func CreateGitHubClient() (*github.Client, error) {
 	basicAuth := github.BasicAuthTransport{
 		Username: user,
 		Password: pwd,
-
 	}
 	httpClient := basicAuth.Client()
 	return github.NewClient(httpClient), nil
+}
+
+func GetRepository(client *github.Client, owner string, name string) (*github.Repository, error) {
+	repo, _, err := client.Repositories.Get(owner, name)
+	return repo, err
 }
 
 // ForkRepositoryOrRevertMasterInFork forks the given repository to the new owner or resets the fork
@@ -62,18 +66,18 @@ func CreateGitHubClient() (*github.Client, error) {
 func ForkRepositoryOrRevertMasterInFork(client *github.Client, userRepo *UserRepositoryName, newOwner string) (*github.Repository, error) {
 	repoOwner := userRepo.Organisation
 	repoName := userRepo.Repository
-	repo, _, err := client.Repositories.Get(repoOwner, repoName)
+	repo, err := GetRepository(client, repoOwner, repoName)
 	if err != nil {
-		return nil, err;
+		return nil, err
 	}
 	u := repo.HTMLURL
 	if u != nil {
 		fmt.Printf("Found repository at %s\n", *u)
 	}
 
-	forkRepo, _, err := client.Repositories.Get(newOwner, repoName)
+	forkRepo, err := GetRepository(client, newOwner, repoName)
 	if err != nil {
-		return nil, err;
+		return nil, err
 	}
 
 	if forkRepo == nil {
@@ -90,11 +94,25 @@ func ForkRepositoryOrRevertMasterInFork(client *github.Client, userRepo *UserRep
 	return forkRepo, nil
 }
 
+func GetCloneURL(repo *github.Repository, useHttps bool) (string, error) {
+	cloneUrl := repo.SSHURL
+	if useHttps {
+		cloneUrl = repo.CloneURL
+		if cloneUrl == nil {
+			return "", fmt.Errorf("Git repository does not have a clone URL: %v", repo)
+		}
+	} else {
+		if cloneUrl == nil {
+			return "", fmt.Errorf("Git repository does not have a SSH URL: %v", repo)
+		}
+	}
+	return *cloneUrl, nil
+}
 
 func mandatoryEnvVar(name string) (string, error) {
 	answer := os.Getenv(name)
 	if len(answer) == 0 {
-		return "", fmt.Errorf("Missing environment variable value $%s", name);
+		return "", fmt.Errorf("Missing environment variable value $%s", name)
 	}
 	return answer, nil
 }

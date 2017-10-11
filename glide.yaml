@@ -6,3 +6,5 @@ import:
   version: ^4.0.0
 - package: github.com/google/go-github
 - package: github.com/google/go-querystring
+- package: github.com/stretchr/testify
+

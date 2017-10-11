@@ -2,10 +2,10 @@ package utils
 
 import (
 	"errors"
-	"github.com/fabric8-jenkins/golang-jenkins"
-	"os"
-	"io/ioutil"
 	"fmt"
+	"github.com/fabric8-jenkins/golang-jenkins"
+	"io/ioutil"
+	"os"
 )
 
 func GetJenkinsClient() (*gojenkins.Jenkins, error) {
