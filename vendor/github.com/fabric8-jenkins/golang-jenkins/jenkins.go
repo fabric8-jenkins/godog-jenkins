@@ -14,8 +14,9 @@ import (
 )
 
 type Auth struct {
-	Username string
-	ApiToken string
+	Username    string
+	ApiToken    string
+	BearerToken string
 }
 
 type Jenkins struct {
@@ -25,10 +26,16 @@ type Jenkins struct {
 }
 
 func NewJenkins(auth *Auth, baseUrl string) *Jenkins {
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}}
+
 	return &Jenkins{
 		auth:    auth,
 		baseUrl: baseUrl,
-		client:  http.DefaultClient,
+		client:  client,
 	}
 }
 
@@ -51,7 +58,11 @@ func (jenkins *Jenkins) buildUrl(path string, params url.Values) (requestUrl str
 
 func (jenkins *Jenkins) sendRequest(req *http.Request) (*http.Response, error) {
 	if jenkins.auth != nil {
-		req.SetBasicAuth(jenkins.auth.Username, jenkins.auth.ApiToken)
+		if jenkins.auth.BearerToken != "" {
+			req.Header.Add("Authorization", "Bearer "+jenkins.auth.BearerToken)
+		} else {
+			req.SetBasicAuth(jenkins.auth.Username, jenkins.auth.ApiToken)
+		}
 	}
 	return jenkins.client.Do(req)
 }
@@ -99,7 +110,7 @@ func (jenkins *Jenkins) parseXmlResponseWithWrapperElement(resp *http.Response, 
 func (jenkins *Jenkins) parseResponse(resp *http.Response, body interface{}) (err error) {
 	defer resp.Body.Close()
 
-	if resp.StatusCode > 201 {
+	if resp.StatusCode != 302 && resp.StatusCode != 405 && resp.StatusCode > 201 {
 		return errors.New(resp.Status)
 	}
 
@@ -169,10 +180,6 @@ func (jenkins *Jenkins) post(path string, params url.Values, body interface{}) (
 	if err != nil {
 		return
 	}
-	if !(200 <= resp.StatusCode && resp.StatusCode <= 299) {
-		return errors.New(fmt.Sprintf("error: HTTP POST returned status code %d (expected 2xx)", resp.StatusCode))
-	}
-
 	return jenkins.parseResponse(resp, body)
 }
 func (jenkins *Jenkins) postXml(path string, params url.Values, xmlBody io.Reader, body interface{}) (err error) {
@@ -193,9 +200,6 @@ func (jenkins *Jenkins) postXml(path string, params url.Values, xmlBody io.Reade
 	resp, err := jenkins.sendRequest(req)
 	if err != nil {
 		return
-	}
-	if resp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("error: HTTP POST returned status code returned: %d", resp.StatusCode))
 	}
 
 	return jenkins.parseXmlResponse(resp, body)

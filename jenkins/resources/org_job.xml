@@ -37,11 +37,11 @@
     <disabled>false</disabled>
     <navigators>
         <org.jenkinsci.plugins.github__branch__source.GitHubSCMNavigator plugin="github-branch-source@2.2.3">
-            <repoOwner>rawlingsj</repoOwner>
+            <repoOwner>fabric8-quickstarts-tests</repoOwner>
             <credentialsId>cd-github</credentialsId>
             <traits>
                 <jenkins.scm.impl.trait.WildcardSCMSourceFilterTrait plugin="scm-api@2.2.0">
-                    <includes>foo</includes>
+                    <includes>*</includes>
                     <excludes></excludes>
                 </jenkins.scm.impl.trait.WildcardSCMSourceFilterTrait>
                 <org.jenkinsci.plugins.github__branch__source.BranchDiscoveryTrait>

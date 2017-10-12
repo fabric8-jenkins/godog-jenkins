@@ -13,7 +13,7 @@ func thereAreIsAJobCalled(jobName string) error {
 	}
 	job, err := jenkins.GetJob(jobName)
 	if err != nil {
-		fmt.Errorf("error found existing job %s ", job.Name)
+		return fmt.Errorf("error found existing job %s ", job.Name)
 	}
 	return nil
 }
@@ -25,11 +25,11 @@ func iDeleteTheJob(jobName string) error {
 	}
 	job, err := jenkins.GetJob(jobName)
 	if err != nil {
-		fmt.Errorf("error finding existing job %s ", job.Name)
+		return fmt.Errorf("error finding existing job %s ", job.Name)
 	}
 	err = jenkins.DeleteJob(job)
 	if err != nil {
-		fmt.Errorf("error deleteing job %s ", job.Name)
+		return fmt.Errorf("error deleteing job %s ", job.Name)
 	}
 	return nil
 }
