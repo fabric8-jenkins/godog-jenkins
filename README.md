@@ -11,6 +11,9 @@ Then set the following environment variables:
 export BDD_JENKINS_URL=http://your.jenkins.io
 export BDD_JENKINS_TOKEN=abcd1234
 export BDD_JENKINS_USERNAME=jrawlings
+
+export GITHUB_USER=rawlingsj
+export GITHUB_PASSWORD=myPersonalAccessTokenGoesHere
 ```
 Now run:
 ```
