@@ -18,13 +18,16 @@ func GetJenkinsClient() (*gojenkins.Jenkins, error) {
 		return nil, errors.New("no BDD_JENKINS_USERNAME env var set")
 	}
 	token := os.Getenv("BDD_JENKINS_TOKEN")
-	if token == "" {
-		return nil, errors.New("no BDD_JENKINS_TOKEN env var set")
+
+	bearerToken := os.Getenv("BDD_JENKINS_BEARER_TOKEN")
+	if token == "" && bearerToken == "" {
+		return nil, errors.New("no BDD_JENKINS_TOKEN or BDD_JENKINS_BEARER_TOKEN env var set")
 	}
 
 	auth := &gojenkins.Auth{
-		Username: username,
-		ApiToken: token,
+		Username:    username,
+		ApiToken:    token,
+		BearerToken: bearerToken,
 	}
 	return gojenkins.NewJenkins(auth, url), nil
 }
