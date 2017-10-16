@@ -6,35 +6,34 @@
 package github
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"reflect"
 	"testing"
 )
 
-func TestAppsService_ListInstallations(t *testing.T) {
+func TestIntegrationService_ListRepos(t *testing.T) {
 	setup()
 	defer teardown()
 
-	mux.HandleFunc("/app/installations", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/installation/repositories", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		testHeader(t, r, "Accept", mediaTypeIntegrationPreview)
 		testFormValues(t, r, values{
 			"page":     "1",
 			"per_page": "2",
 		})
-		fmt.Fprint(w, `[{"id":1}]`)
+		fmt.Fprint(w, `{"repositories": [{"id":1}]}`)
 	})
 
 	opt := &ListOptions{Page: 1, PerPage: 2}
-	installations, _, err := client.Apps.ListInstallations(context.Background(), opt)
+	repositories, _, err := client.Integrations.ListRepos(opt)
 	if err != nil {
-		t.Errorf("Apps.ListInstallations returned error: %v", err)
+		t.Errorf("Integration.ListRepos returned error: %v", err)
 	}
 
-	want := []*Installation{{ID: Int(1)}}
-	if !reflect.DeepEqual(installations, want) {
-		t.Errorf("Apps.ListInstallations returned %+v, want %+v", installations, want)
+	want := []*Repository{{ID: Int(1)}}
+	if !reflect.DeepEqual(repositories, want) {
+		t.Errorf("Integration.ListRepos returned %+v, want %+v", repositories, want)
 	}
 }

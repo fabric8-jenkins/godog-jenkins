@@ -7,7 +7,6 @@ package github
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"time"
 )
@@ -21,6 +20,7 @@ type RepositoryCommit struct {
 	Author      *User    `json:"author,omitempty"`
 	Committer   *User    `json:"committer,omitempty"`
 	Parents     []Commit `json:"parents,omitempty"`
+	Message     *string  `json:"message,omitempty"`
 	HTMLURL     *string  `json:"html_url,omitempty"`
 	URL         *string  `json:"url,omitempty"`
 	CommentsURL *string  `json:"comments_url,omitempty"`
@@ -79,12 +79,6 @@ type CommitsComparison struct {
 	Commits []RepositoryCommit `json:"commits,omitempty"`
 
 	Files []CommitFile `json:"files,omitempty"`
-
-	HTMLURL      *string `json:"html_url,omitempty"`
-	PermalinkURL *string `json:"permalink_url,omitempty"`
-	DiffURL      *string `json:"diff_url,omitempty"`
-	PatchURL     *string `json:"patch_url,omitempty"`
-	URL          *string `json:"url,omitempty"` // API URL.
 }
 
 func (c CommitsComparison) String() string {
@@ -114,8 +108,8 @@ type CommitsListOptions struct {
 
 // ListCommits lists the commits of a repository.
 //
-// GitHub API docs: https://developer.github.com/v3/repos/commits/#list
-func (s *RepositoriesService) ListCommits(ctx context.Context, owner, repo string, opt *CommitsListOptions) ([]*RepositoryCommit, *Response, error) {
+// GitHub API docs: http://developer.github.com/v3/repos/commits/#list
+func (s *RepositoriesService) ListCommits(owner, repo string, opt *CommitsListOptions) ([]*RepositoryCommit, *Response, error) {
 	u := fmt.Sprintf("repos/%v/%v/commits", owner, repo)
 	u, err := addOptions(u, opt)
 	if err != nil {
@@ -127,24 +121,21 @@ func (s *RepositoriesService) ListCommits(ctx context.Context, owner, repo strin
 		return nil, nil, err
 	}
 
-	// TODO: remove custom Accept header when this API fully launches.
-	req.Header.Set("Accept", mediaTypeGitSigningPreview)
-
-	var commits []*RepositoryCommit
-	resp, err := s.client.Do(ctx, req, &commits)
+	commits := new([]*RepositoryCommit)
+	resp, err := s.client.Do(req, commits)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return commits, resp, nil
+	return *commits, resp, err
 }
 
 // GetCommit fetches the specified commit, including all details about it.
 // todo: support media formats - https://github.com/google/go-github/issues/6
 //
-// GitHub API docs: https://developer.github.com/v3/repos/commits/#get-a-single-commit
-// See also: https://developer.github.com//v3/git/commits/#get-a-single-commit provides the same functionality
-func (s *RepositoriesService) GetCommit(ctx context.Context, owner, repo, sha string) (*RepositoryCommit, *Response, error) {
+// GitHub API docs: http://developer.github.com/v3/repos/commits/#get-a-single-commit
+// See also: http://developer.github.com//v3/git/commits/#get-a-single-commit provides the same functionality
+func (s *RepositoriesService) GetCommit(owner, repo, sha string) (*RepositoryCommit, *Response, error) {
 	u := fmt.Sprintf("repos/%v/%v/commits/%v", owner, repo, sha)
 
 	req, err := s.client.NewRequest("GET", u, nil)
@@ -156,19 +147,19 @@ func (s *RepositoriesService) GetCommit(ctx context.Context, owner, repo, sha st
 	req.Header.Set("Accept", mediaTypeGitSigningPreview)
 
 	commit := new(RepositoryCommit)
-	resp, err := s.client.Do(ctx, req, commit)
+	resp, err := s.client.Do(req, commit)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return commit, resp, nil
+	return commit, resp, err
 }
 
-// GetCommitSHA1 gets the SHA-1 of a commit reference. If a last-known SHA1 is
+// GetCommitSHA1 gets the SHA-1 of a commit reference.  If a last-known SHA1 is
 // supplied and no new commits have occurred, a 304 Unmodified response is returned.
 //
 // GitHub API docs: https://developer.github.com/v3/repos/commits/#get-the-sha-1-of-a-commit-reference
-func (s *RepositoriesService) GetCommitSHA1(ctx context.Context, owner, repo, ref, lastSHA string) (string, *Response, error) {
+func (s *RepositoriesService) GetCommitSHA1(owner, repo, ref, lastSHA string) (string, *Response, error) {
 	u := fmt.Sprintf("repos/%v/%v/commits/%v", owner, repo, ref)
 
 	req, err := s.client.NewRequest("GET", u, nil)
@@ -182,19 +173,19 @@ func (s *RepositoriesService) GetCommitSHA1(ctx context.Context, owner, repo, re
 	req.Header.Set("Accept", mediaTypeV3SHA)
 
 	var buf bytes.Buffer
-	resp, err := s.client.Do(ctx, req, &buf)
+	resp, err := s.client.Do(req, &buf)
 	if err != nil {
 		return "", resp, err
 	}
 
-	return buf.String(), resp, nil
+	return buf.String(), resp, err
 }
 
 // CompareCommits compares a range of commits with each other.
 // todo: support media formats - https://github.com/google/go-github/issues/6
 //
-// GitHub API docs: https://developer.github.com/v3/repos/commits/index.html#compare-two-commits
-func (s *RepositoriesService) CompareCommits(ctx context.Context, owner, repo string, base, head string) (*CommitsComparison, *Response, error) {
+// GitHub API docs: http://developer.github.com/v3/repos/commits/index.html#compare-two-commits
+func (s *RepositoriesService) CompareCommits(owner, repo string, base, head string) (*CommitsComparison, *Response, error) {
 	u := fmt.Sprintf("repos/%v/%v/compare/%v...%v", owner, repo, base, head)
 
 	req, err := s.client.NewRequest("GET", u, nil)
@@ -203,10 +194,10 @@ func (s *RepositoriesService) CompareCommits(ctx context.Context, owner, repo st
 	}
 
 	comp := new(CommitsComparison)
-	resp, err := s.client.Do(ctx, req, comp)
+	resp, err := s.client.Do(req, comp)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return comp, resp, nil
+	return comp, resp, err
 }

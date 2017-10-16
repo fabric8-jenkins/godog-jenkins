@@ -1,5 +1,5 @@
-hash: 8cfe1b3e177c5ac90719fe9507f8d0b1402e3f187680e12689d5dafa7790c979
-updated: 2017-10-16T14:22:31.418069648+01:00
+hash: 8803011326da9aa72c3d632073dfd45ccad3b67d6d6dd96e3908d8da5cc2801e
+updated: 2017-10-16T15:22:46.11344279+01:00
 imports:
 - name: github.com/cucumber/gherkin-go
   version: b4fe8f6d1dc26a0b1fb8e677244aa8f775a944f3
@@ -15,7 +15,7 @@ imports:
 - name: github.com/fabric8-jenkins/golang-jenkins
   version: 68687bbf2c02bbb25ba79802208a7cce88716a6e
 - name: github.com/google/go-github
-  version: a021c14a5f1960591b0e1773a4a2ef8257ec93b8
+  version: 5c45bca952b96dedace6c307caff915483013003
   subpackages:
   - github
 - name: github.com/google/go-querystring
