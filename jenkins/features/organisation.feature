@@ -11,14 +11,14 @@ Feature: import GitHub Repo
   Scenario: Trigger an organisation scan
     Given there is a "fabric8-quickstarts-tests" job
     When I trigger the "fabric8-quickstarts-tests" job
-    Then the organisation scan for "fabric8-quickstarts-tests" completes
+    Then then wait to check the organisation scan for "fabric8-quickstarts-tests" is successful
 
-#  Scenario: Multi branch job
-#    Given there is a job "spring-boot-http-booster1"
-#    When I trigger the job "spring-boot-http-booster1"
-#    Then the job "spring-boot-http-booster1" is successful
+  Scenario: Test multibranch spring-boot-http-booster quickstarts
+    Given organisation job "fabric8-quickstarts-tests" contains a "spring-boot-http-booster" job
+    When I trigger the multibranch job "spring-boot-http-booster"
+    Then the job "spring-boot-http-booster" is successful
 
   Scenario: Delete organisation
-    Given there are is a job called "fabric8-quickstarts-tests"
+    Given there is a job called "fabric8-quickstarts-tests"
     When I delete the "fabric8-quickstarts-tests" job
     Then there should not be a "fabric8-quickstarts-tests" job

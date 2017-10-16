@@ -6,6 +6,7 @@
 package github
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -19,14 +20,13 @@ func TestRepositoriesService_ListTrafficReferrers(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/traffic/popular/referrers", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
-		testHeader(t, r, "Accept", mediaTypeTrafficPreview)
 		fmt.Fprintf(w, `[{
 			"referrer": "Google",
 			"count": 4,
 			"uniques": 3
  		}]`)
 	})
-	referrers, _, err := client.Repositories.ListTrafficReferrers("o", "r")
+	referrers, _, err := client.Repositories.ListTrafficReferrers(context.Background(), "o", "r")
 	if err != nil {
 		t.Errorf("Repositories.ListPaths returned error: %+v", err)
 	}
@@ -48,7 +48,6 @@ func TestRepositoriesService_ListTrafficPaths(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/traffic/popular/paths", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
-		testHeader(t, r, "Accept", mediaTypeTrafficPreview)
 		fmt.Fprintf(w, `[{
 			"path": "/github/hubot",
 			"title": "github/hubot: A customizable life embetterment robot.",
@@ -56,7 +55,7 @@ func TestRepositoriesService_ListTrafficPaths(t *testing.T) {
 			"uniques": 2225
  		}]`)
 	})
-	paths, _, err := client.Repositories.ListTrafficPaths("o", "r")
+	paths, _, err := client.Repositories.ListTrafficPaths(context.Background(), "o", "r")
 	if err != nil {
 		t.Errorf("Repositories.ListPaths returned error: %+v", err)
 	}
@@ -79,7 +78,6 @@ func TestRepositoriesService_ListTrafficViews(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/traffic/views", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
-		testHeader(t, r, "Accept", mediaTypeTrafficPreview)
 		fmt.Fprintf(w, `{"count": 7,
 			"uniques": 6,
 			"views": [{
@@ -89,7 +87,7 @@ func TestRepositoriesService_ListTrafficViews(t *testing.T) {
 		}]}`)
 	})
 
-	views, _, err := client.Repositories.ListTrafficViews("o", "r", nil)
+	views, _, err := client.Repositories.ListTrafficViews(context.Background(), "o", "r", nil)
 	if err != nil {
 		t.Errorf("Repositories.ListPaths returned error: %+v", err)
 	}
@@ -116,7 +114,6 @@ func TestRepositoriesService_ListTrafficClones(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/traffic/clones", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
-		testHeader(t, r, "Accept", mediaTypeTrafficPreview)
 		fmt.Fprintf(w, `{"count": 7,
 			"uniques": 6,
 			"clones": [{
@@ -126,7 +123,7 @@ func TestRepositoriesService_ListTrafficClones(t *testing.T) {
 		}]}`)
 	})
 
-	clones, _, err := client.Repositories.ListTrafficClones("o", "r", nil)
+	clones, _, err := client.Repositories.ListTrafficClones(context.Background(), "o", "r", nil)
 	if err != nil {
 		t.Errorf("Repositories.ListPaths returned error: %+v", err)
 	}
