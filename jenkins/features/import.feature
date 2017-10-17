@@ -5,9 +5,9 @@ Feature: import GitHub Repo
 
   Scenario: Import repo and run sample pipeline
     Given there is a fabric8-import job
-    When we import the "fabric8-quickstarts-tests/fabric8-pipeline-simple-test" GitHub repo selecting "ReleaseAndStage" pipeline
+    When we import the "fabric8-quickstarts-tests/spring-boot-http-booster" GitHub repo selecting "ReleaseAndStage" pipeline
     And we merge the PR which is created
-    Then there should be a "fabric8-quickstarts-tests/fabric8-pipeline-simple-test" job that completes successfully
+    Then there should be a "fabric8-quickstarts-tests/spring-boot-http-booster" job that completes successfully
 
   Scenario: Delete organisation
     Given there is a job called "fabric8-quickstarts-tests"
