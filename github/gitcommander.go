@@ -76,7 +76,10 @@ func (commander *GitCommander) GetLastCommitSha(dir string) (string, error) {
 
 // DeleteWorkDir removes all files inside the work dir so that the test can start clean
 func (g *GitCommander) DeleteWorkDir() error {
-	return RemoveDirContents(g.Dir)
+	if _, err := os.Stat(g.Dir); err == nil {
+		return RemoveDirContents(g.Dir)
+	}
+	return nil
 }
 
 func RemoveDirContents(dir string) error {

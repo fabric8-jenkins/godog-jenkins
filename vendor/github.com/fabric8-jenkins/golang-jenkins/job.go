@@ -69,22 +69,31 @@ type UpstreamCause struct {
 }
 
 type Job struct {
-	Actions []Action `json:"actions"`
-	Name    string   `json:"name"`
-	Url     string   `json:"url"`
-	Color   string   `json:"color"`
+	Actions  []Action `json:"actions"`
+	Class    string   `json:"_class"`
+	Name     string   `json:"name"`
+	FullName string   `json:"fullName"`
+	Url      string   `json:"url"`
+	Color    string   `json:"color"`
 
 	Buildable    bool     `json:"buildable"`
 	DisplayName  string   `json:"displayName"`
 	Description  string   `json:"description"`
 	HealthReport []Health `json:"healthReport"`
 
+	Jobs                  []Job `json:"jobs"`
 	LastCompletedBuild    Build `json:"lastCompletedBuild"`
 	LastFailedBuild       Build `json:"lastFailedBuild"`
 	LastStableBuild       Build `json:"lastStableBuild"`
 	LastSuccessfulBuild   Build `json:"lastSuccessfulBuild"`
 	LastUnstableBuild     Build `json:"lastUnstableBuild"`
 	LastUnsuccessfulBuild Build `json:"lastUnsuccessfulBuild"`
+}
+
+type MultiBranchProject struct {
+	Class string `json:"_class"`
+	Name  string `json:"name"`
+	Url   string `json:"url"`
 }
 
 type Health struct {
