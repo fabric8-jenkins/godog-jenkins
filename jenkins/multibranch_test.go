@@ -13,6 +13,7 @@ type mutibranchFeature struct {
 	name   string
 	branch string
 	job    gojenkins.Job
+	client gojenkins.Jenkins
 }
 
 func (m *mutibranchFeature) organisationJobContainsAJob(orgJobName, multibranchJobName string) error {
@@ -80,7 +81,7 @@ func (m *mutibranchFeature) theJobIsSuccessful(arg1 string) error {
 	return nil
 }
 
-func FeatureContext(s *godog.Suite) {
+func FeatureMultiBranchContext(s *godog.Suite) {
 	m := &mutibranchFeature{}
 
 	s.Step(`^organisation job "([^"]*)" contains a "([^"]*)" job$`, m.organisationJobContainsAJob)
