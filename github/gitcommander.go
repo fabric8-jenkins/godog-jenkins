@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fabric8-jenkins/go-github/github"
+	"github.com/google/go-github/github"
 )
 
 type GitCommander struct {
