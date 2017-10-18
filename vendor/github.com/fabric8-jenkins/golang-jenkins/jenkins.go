@@ -337,6 +337,24 @@ func (jenkins *Jenkins) GetMultiBranchJob(organisationJobName, multibranchJobNam
 	return
 }
 
+// GetJobByPath looks up the jenkins job via the one or more paths
+func (jenkins *Jenkins) GetJobByPath(path ...string)(job Job, err error){
+	fullPath := FullJobPath(path...)
+	err = jenkins.get(fullPath, nil, &job)
+	return
+}
+
+// FullJobPath returns the full job path URL for the given paths
+func FullJobPath(path ...string) string {
+	buffer := bytes.NewBufferString("")
+	for _, p := range path {
+		buffer.WriteString("/job/")
+		t := strings.TrimPrefix(p, "/")
+		buffer.WriteString(strings.TrimSuffix(t, "/"))
+	}
+	return buffer.String()
+}
+
 // GetLastBuild returns the last build of specified job.
 func (jenkins *Jenkins) GetOrganizationScanResult(retries int, job Job) (status string, err error) {
 

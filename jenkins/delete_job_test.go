@@ -2,39 +2,46 @@ package jenkins
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/DATA-DOG/godog"
 	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
-func thereIsAJobCalled(jobName string) error {
+func thereIsAJobCalled(jobExpression string) error {
+	jobName := utils.ReplaceEnvVars(jobExpression)
 	jenkins, err := utils.GetJenkinsClient()
 	if err != nil {
 		return fmt.Errorf("error getting a Jenkins client %v", err)
 	}
-	job, err := jenkins.GetJob(jobName)
+	paths := strings.Split(jobName, "/")
+	_, err = jenkins.GetJobByPath(paths...)
 	if err != nil {
-		return fmt.Errorf("error finding existing job %s ", job.Name)
+		return fmt.Errorf("error finding existing job %s due to %s", jobName, err)
 	}
 	return nil
 }
 
-func iDeleteTheJob(jobName string) error {
+func iDeleteTheJob(jobExpression string) error {
+	jobName := utils.ReplaceEnvVars(jobExpression)
 	jenkins, err := utils.GetJenkinsClient()
 	if err != nil {
 		return fmt.Errorf("error getting a Jenkins client  %v", err)
 	}
-	job, err := jenkins.GetJob(jobName)
+	paths := strings.Split(jobName, "/")
+	job, err := jenkins.GetJobByPath(paths...)
 	if err != nil {
-		return fmt.Errorf("error finding existing job %s ", job.Name)
+		return fmt.Errorf("error finding existing job %s due to %s", jobName, err)
 	}
 	err = jenkins.DeleteJob(job)
 	if err != nil {
-		return fmt.Errorf("error deleteing job %s ", job.Name)
+		return fmt.Errorf("error deleteing job %s due to %s", job.Name, err)
 	}
 	return nil
 }
 
-func thereShouldNotBeAJob(jobName string) error {
+func thereShouldNotBeAJob(jobExpression string) error {
+	jobName := utils.ReplaceEnvVars(jobExpression)
 	jenkins, err := utils.GetJenkinsClient()
 	if err != nil {
 		return fmt.Errorf("error getting a Jenkins client  %v", err)
