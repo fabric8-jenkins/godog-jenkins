@@ -2,6 +2,7 @@ package github
 
 import (
 	"fmt"
+	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
 type ForkFeature struct {
@@ -33,7 +34,7 @@ func (f *ForkFeature) iForkTheGitHubOrganisationToTheCurrentUser(originalRepoNam
 	if err != nil {
 		return err
 	}
-	currentGithubUser, err := mandatoryEnvVar("GITHUB_USER")
+	currentGithubUser, err := utils.MandatoryEnvVar("GITHUB_USER")
 	if err != nil {
 		return err
 	}

@@ -3,10 +3,10 @@ package github
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/google/go-github/github"
+	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
 type UserRepositoryName struct {
@@ -41,11 +41,11 @@ func CreateGitHubClient() (*github.Client, error) {
 		tc := oauth2.NewClient(ctx, ts)
 	*/
 
-	user, err := mandatoryEnvVar("GITHUB_USER")
+	user, err := utils.MandatoryEnvVar("GITHUB_USER")
 	if err != nil {
 		return nil, err
 	}
-	pwd, err := mandatoryEnvVar("GITHUB_PASSWORD")
+	pwd, err := utils.MandatoryEnvVar("GITHUB_PASSWORD")
 	if err != nil {
 		return nil, err
 	}
@@ -130,12 +130,4 @@ func GetCloneURL(repo *github.Repository, useHttps bool) (string, error) {
 		}
 	}
 	return *cloneUrl, nil
-}
-
-func mandatoryEnvVar(name string) (string, error) {
-	answer := os.Getenv(name)
-	if len(answer) == 0 {
-		return "", fmt.Errorf("Missing environment variable value $%s", name)
-	}
-	return answer, nil
 }
