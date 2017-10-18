@@ -6,6 +6,7 @@ import (
 	"github.com/fabric8-jenkins/godog-jenkins/utils"
 	"github.com/fabric8-jenkins/golang-jenkins"
 	"net/url"
+	"github.com/fabric8-jenkins/godog-jenkins/github"
 )
 
 type importFeature struct {
@@ -38,7 +39,18 @@ func (f *importFeature) thereIsAFabricImportJob(arg int) error {
 	return nil
 }
 
-func (f *importFeature) weImportTheGitHubRepoSelectingPipeline(repository, pipeline string) error {
+func (f *importFeature) weImportTheGitHubRepoSelectingPipeline(originalRepoName, pipeline string) error {
+	// lets fork the repository first
+	fmt.Printf("forking upstream %s\n", originalRepoName)
+	forker := &github.ForkFeature{
+		GitCommander: github.CreateGitCommander(),
+	}
+	repository, err := forker.ForkToUsersRepo(originalRepoName)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("fork is %s\n", repository)
+
 	jenkins, err := utils.GetJenkinsClient()
 	if err != nil {
 		return fmt.Errorf("error getting a Jenkins client %v", err)

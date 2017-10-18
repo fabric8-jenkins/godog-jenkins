@@ -1,15 +1,16 @@
 package utils
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/fabric8-jenkins/golang-jenkins"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 	"time"
-	"crypto/tls"
-	"net/http"
+
+	"github.com/fabric8-jenkins/golang-jenkins"
 )
 
 func GetJenkinsClient() (*gojenkins.Jenkins, error) {

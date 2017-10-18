@@ -1,11 +1,12 @@
 package github
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/google/go-github/github"
+	"github.com/fabric8-jenkins/go-github/github"
 )
 
 type UserRepositoryName struct {
@@ -57,7 +58,8 @@ func CreateGitHubClient() (*github.Client, error) {
 }
 
 func GetRepository(client *github.Client, owner string, name string) (*github.Repository, error) {
-	repo, _, err := client.Repositories.Get(owner, name)
+	ctx := context.Background()
+	repo, _, err := client.Repositories.Get(ctx, owner, name)
 	return repo, err
 }
 
@@ -76,22 +78,45 @@ func ForkRepositoryOrRevertMasterInFork(client *github.Client, userRepo *UserRep
 	}
 
 	forkRepo, err := GetRepository(client, newOwner, repoName)
+
+	// TODO how to ignore just 404 errors?
+	/*
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error checking if the fork already exists for %s/%s due to %#v", newOwner, repoName, err)
 	}
+	*/
 
-	if forkRepo == nil {
-		fmt.Println("No fork available yet")
+	if forkRepo == nil || err != nil {
+		fmt.Printf("No fork available yet for %s/%s\n", newOwner, repoName)
 
-		opts := &github.RepositoryCreateForkOptions{
-			Organization: newOwner,
+		isUser, err := IsUser(client, repoOwner)
+		if err != nil {
+			return nil, err
 		}
-		forkRepo, _, err = client.Repositories.CreateFork(repoOwner, repoName, opts)
+		opts := &github.RepositoryCreateForkOptions{}
+		if isUser {
+			opts.User = newOwner
+		} else {
+			opts.Organization = newOwner
+		}
+		ctx := context.Background()
+		forkRepo, _, err = client.Repositories.CreateFork(ctx, repoOwner, repoName, opts)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to fork repo %s to user %s due to %s", userRepo.String(), newOwner, err)
 		}
 	}
 	return forkRepo, nil
+}
+
+// IsUser returns true if this name is a User or false if its an Organisation
+func IsUser(client *github.Client, name string) (bool, error) {
+	ctx := context.Background()
+	user, _, err := client.Users.Get(ctx, name)
+	if err == nil && user != nil {
+		return true, nil
+	}
+	_, _, err = client.Organizations.Get(ctx, name)
+	return false, err
 }
 
 func GetCloneURL(repo *github.Repository, useHttps bool) (string, error) {

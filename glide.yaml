@@ -4,7 +4,7 @@ import:
 - package: github.com/fabric8-jenkins/golang-jenkins
 - package: github.com/cucumber/gherkin-go
   version: ^4.0.0
-- package: github.com/google/go-github
+- package: github.com/fabric8-jenkins/go-github
 - package: github.com/google/go-querystring
 - package: github.com/stretchr/testify
 
