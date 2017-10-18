@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fabric8-jenkins/go-github/github"
+	"github.com/google/go-github/github"
 )
 
 type UserRepositoryName struct {
@@ -94,9 +94,7 @@ func ForkRepositoryOrRevertMasterInFork(client *github.Client, userRepo *UserRep
 			return nil, err
 		}
 		opts := &github.RepositoryCreateForkOptions{}
-		if isUser {
-			opts.User = newOwner
-		} else {
+		if !isUser {
 			opts.Organization = newOwner
 		}
 		ctx := context.Background()
