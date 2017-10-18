@@ -1,5 +1,5 @@
-hash: 8803011326da9aa72c3d632073dfd45ccad3b67d6d6dd96e3908d8da5cc2801e
-updated: 2017-10-16T15:22:46.11344279+01:00
+hash: 6144088afe16d128274dadce3f8271a7268bb14f598d8cdd82b3f7b2bb363f99
+updated: 2017-10-18T09:14:16.528812+01:00
 imports:
 - name: github.com/cucumber/gherkin-go
   version: b4fe8f6d1dc26a0b1fb8e677244aa8f775a944f3
@@ -9,15 +9,15 @@ imports:
   - colors
   - gherkin
 - name: github.com/davecgh/go-spew
-  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
   subpackages:
   - spew
-- name: github.com/fabric8-jenkins/golang-jenkins
-  version: 68687bbf2c02bbb25ba79802208a7cce88716a6e
-- name: github.com/google/go-github
-  version: 5c45bca952b96dedace6c307caff915483013003
+- name: github.com/fabric8-jenkins/go-github
+  version: b0451269eb0172c33fceb11348d0f58674c0d6fe
   subpackages:
   - github
+- name: github.com/fabric8-jenkins/golang-jenkins
+  version: 4627997fdb1cdea0129089067137f2974be6af0c
 - name: github.com/google/go-querystring
   version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
   subpackages:
@@ -27,7 +27,7 @@ imports:
   subpackages:
   - difflib
 - name: github.com/stretchr/testify
-  version: 890a5c3458b43e6104ff5da8dfa139d013d77544
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
   subpackages:
   - assert
 testImports: []
