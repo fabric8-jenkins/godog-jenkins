@@ -66,10 +66,13 @@ func (f *importFeature) weImportTheGitHubRepoSelectingPipeline(originalRepoName,
 }
 
 func (f *importFeature) weMergeThePRWhichIsCreated() error {
-	return godog.ErrPending
+	//return godog.ErrPending
+	return nil
 }
 
-func (f *importFeature) thereShouldBeAJobThatCompletesSuccessfully(arg1 string) error {
+func (f *importFeature) thereShouldBeAJobThatCompletesSuccessfully(jobExpression string) error {
+	job := utils.ReplaceEnvVars(jobExpression)
+	fmt.Printf("Aseserting there is a job called %s\n", job)
 	return godog.ErrPending
 }
 

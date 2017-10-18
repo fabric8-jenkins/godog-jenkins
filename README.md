@@ -6,6 +6,12 @@ Go to http://your.jenkins.io/me/configure, in the __API Token__ section click `S
 
 ![api token](images/api-token.png)
 
+To run these tests against a [fabric8 installation](https://github.com/fabric8io/fabric8-platform/blob/master/INSTALL.md) then run the following command:
+
+```shell
+eval $(gofabric8 bdd-env)
+```
+
 Then set the following environment variables:
 ```
 export BDD_JENKINS_URL=http://your.jenkins.io
