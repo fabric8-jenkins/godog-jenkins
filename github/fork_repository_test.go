@@ -7,14 +7,7 @@ import (
 	"path/filepath"
 )
 
-type forkFeature struct {
-	GitCommander *GitCommander
-
-	UpstreamDir string
-	ForkDir     string
-}
-
-func (f *forkFeature) thereIsNoForkOf(repo string) error {
+func (f *ForkFeature) thereIsNoForkOf(repo string) error {
 	gitcmder := f.GitCommander
 	err := gitcmder.DeleteWorkDir()
 	if err != nil {
@@ -25,57 +18,9 @@ func (f *forkFeature) thereIsNoForkOf(repo string) error {
 	return AssertFileDoesNotExist(path)
 }
 
-func (f *forkFeature) iForkTheGitHubOrganisationToTheCurrentUser(originalRepoName string) error {
-	userRepo, err := ParseUserRepositoryName(originalRepoName)
-	if err != nil {
-		return err
-	}
-	currentGithubUser, err := mandatoryEnvVar("GITHUB_USER")
-	if err != nil {
-		return err
-	}
-	client, err := CreateGitHubClient()
-	if err != nil {
-		return err
-	}
-	gitcmder := f.GitCommander
 
-	upstreamRepo, err := GetRepository(client, userRepo.Organisation, userRepo.Repository)
-	if err != nil {
-		return err
-	}
 
-	// now lets fork it
-	repo, err := ForkRepositoryOrRevertMasterInFork(client, userRepo, currentGithubUser)
-	if err != nil {
-		return err
-	}
-	dir, err := gitcmder.Clone(repo)
-	if err == nil {
-		fmt.Printf("Cloned to directory: %s\n", dir)
-	}
-	f.ForkDir = dir
-
-	upstreamCloneURL, err := GetCloneURL(upstreamRepo, true)
-	if err != nil {
-		return err
-	}
-
-	upstreamDir, err := gitcmder.CloneFromURL(upstreamRepo, upstreamCloneURL)
-	if err != nil {
-		return err
-	}
-	f.UpstreamDir = upstreamDir
-
-	err = gitcmder.ResetMasterFromUpstream(dir, upstreamCloneURL)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (f *forkFeature) thereShouldBeAForkForTheCurrentUserWhichHasTheSameLastCommitAs(forkedRepo string) error {
+func (f *ForkFeature) thereShouldBeAForkForTheCurrentUserWhichHasTheSameLastCommitAs(forkedRepo string) error {
 	gitcmder := f.GitCommander
 	upstreamSha, err := gitcmder.GetLastCommitSha(f.UpstreamDir)
 	if err != nil {
@@ -97,7 +42,7 @@ func (f *forkFeature) thereShouldBeAForkForTheCurrentUserWhichHasTheSameLastComm
 }
 
 func FeatureContext(s *godog.Suite) {
-	f := &forkFeature{
+	f := &ForkFeature{
 		GitCommander: CreateGitCommander(),
 	}
 
