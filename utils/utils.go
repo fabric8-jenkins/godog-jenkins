@@ -8,12 +8,14 @@ import (
 	"os"
 	"strings"
 	"time"
+	"crypto/tls"
+	"net/http"
 )
 
 func GetJenkinsClient() (*gojenkins.Jenkins, error) {
 	url := os.Getenv("BDD_JENKINS_URL")
 	if url == "" {
-		return nil, errors.New("no BDD_JENKINS_URL env var set")
+		return nil, errors.New("no BDD_JENKINS_URL env var set. Try running this command first:\n\n  eval $(gofabric8 bdd-env)\n")
 	}
 	username := os.Getenv("BDD_JENKINS_USERNAME")
 	token := os.Getenv("BDD_JENKINS_TOKEN")
@@ -28,7 +30,18 @@ func GetJenkinsClient() (*gojenkins.Jenkins, error) {
 		ApiToken:    token,
 		BearerToken: bearerToken,
 	}
-	return gojenkins.NewJenkins(auth, url), nil
+	jenkins := gojenkins.NewJenkins(auth, url)
+
+	// handle insecure TLS for minishift
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}}
+	jenkins.SetHTTPClient(httpClient)
+	return jenkins, nil
 }
 
 func GetFileAsString(path string) (string, error) {
