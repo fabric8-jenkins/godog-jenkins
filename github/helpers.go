@@ -74,7 +74,7 @@ func ForkRepositoryOrRevertMasterInFork(client *github.Client, userRepo *UserRep
 	}
 	u := repo.HTMLURL
 	if u != nil {
-		fmt.Printf("Found repository at %s\n", *u)
+		utils.LogInfof("Found repository at %s\n", *u)
 	}
 
 	forkRepo, err := GetRepository(client, newOwner, repoName)
@@ -87,7 +87,7 @@ func ForkRepositoryOrRevertMasterInFork(client *github.Client, userRepo *UserRep
 	*/
 
 	if forkRepo == nil || err != nil {
-		fmt.Printf("No fork available yet for %s/%s\n", newOwner, repoName)
+		utils.LogInfof("No fork available yet for %s/%s\n", newOwner, repoName)
 
 		isUser, err := IsUser(client, repoOwner)
 		if err != nil {

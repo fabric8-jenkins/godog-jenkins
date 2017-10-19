@@ -40,7 +40,7 @@ func (m *mutibranchFeature) iTriggerTheMultibranchJob(multibranchJobName string)
 	if err != nil {
 		return fmt.Errorf("error getting a Jenkins client %v", err)
 	}
-	fmt.Printf("Triggering Job: %s\n", m.job.Url)
+	utils.LogInfof("Triggering Job: %s\n", m.job.Url)
 	err = jenkins.Build(m.job, nil)
 	if err != nil {
 		return fmt.Errorf("error triggering job %s %v", m.job.FullName, err)

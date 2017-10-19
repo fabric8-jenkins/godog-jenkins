@@ -1,7 +1,6 @@
 package github
 
 import (
-	"fmt"
 	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
@@ -25,7 +24,7 @@ func (f *ForkFeature) ForkToUsersRepo(uptreamRepoName string) (string, error) {
 		return "", err
 	}
 	name := f.ForkedRepoName
-	fmt.Printf("\nforked the repository %s to the current users account %s\n", uptreamRepoName, name)
+	utils.LogInfof("forked the repository %s to the current users account %s\n", uptreamRepoName, name)
 	return name, err
 }
 
@@ -59,7 +58,7 @@ func (f *ForkFeature) iForkTheGitHubOrganisationToTheCurrentUser(originalRepoNam
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Cloned to directory: %s\n", dir)
+	utils.LogInfof("Cloned to directory: %s\n", dir)
 	f.ForkDir = dir
 
 	upstreamCloneURL, err := GetCloneURL(upstreamRepo, true)
