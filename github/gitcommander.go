@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/github"
+	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
 type GitCommander struct {
@@ -120,7 +121,7 @@ func (commander *GitCommander) ResetMasterFromUpstream(dir string, upstreamClone
 	}
 	err = runCommand(dir, "git", "push", "origin", "master", "--force")
 	if err == nil {
-		fmt.Printf("reset the git repository at %s to the upstream master\n", dir)
+		utils.LogInfof("reset the git repository at %s to the upstream master\n", dir)
 	}
 	return err
 }

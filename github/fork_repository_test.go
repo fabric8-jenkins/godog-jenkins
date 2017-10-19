@@ -30,8 +30,8 @@ func (f *ForkFeature) thereShouldBeAForkForTheCurrentUserWhichHasTheSameLastComm
 	if err != nil {
 		return err
 	}
-	fmt.Printf("upstream last commit is %s\n", upstreamSha)
-	fmt.Printf("fork last commit is %s\n", forkSha)
+	utils.LogInfof("upstream last commit is %s\n", upstreamSha)
+	utils.LogInfof("fork last commit is %s\n", forkSha)
 
 	errors := CreateErrorSlice()
 	assert := CreateAssert(errors)
