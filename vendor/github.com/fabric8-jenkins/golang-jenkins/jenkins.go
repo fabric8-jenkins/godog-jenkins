@@ -355,6 +355,12 @@ func FullJobPath(path ...string) string {
 	return buffer.String()
 }
 
+// FullJobPath returns the full job path URL for the given paths
+func FullPath(job Job) string {
+	paths := strings.Split(job.FullName, "/")
+	return FullJobPath(paths...)
+}
+
 // GetLastBuild returns the last build of specified job.
 func (jenkins *Jenkins) GetOrganizationScanResult(retries int, job Job) (status string, err error) {
 

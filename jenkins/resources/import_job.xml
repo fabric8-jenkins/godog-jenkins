@@ -1,41 +1,41 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <org.jenkinsci.plugins.updatebot.ImportGithubRepoProject plugin="updatebot@1.0.7">
-    <actions/>
-    <description></description>
-    <keepDependencies>false</keepDependencies>
-    <properties>
-        <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.4.6">
-            <gitLabConnection></gitLabConnection>
-        </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
-        <hudson.model.ParametersDefinitionProperty>
-            <parameterDefinitions>
-                <hudson.model.StringParameterDefinition>
-                    <name>repository</name>
-                    <description>the github organisation and repository name in the format: myorg/myrepo</description>
-                    <defaultValue></defaultValue>
-                </hudson.model.StringParameterDefinition>
-                <hudson.model.ChoiceParameterDefinition>
-                    <name>pipeline</name>
-                    <description>the pipeline to use for the project</description>
-                    <choices class="java.util.Arrays$ArrayList">
-                        <a class="string-array">
-                            <string>Release</string>
-                            <string>ReleaseAndStage</string>
-                            <string>ReleaseStageAndPromote</string>
-                        </a>
-                    </choices>
-                </hudson.model.ChoiceParameterDefinition>
-            </parameterDefinitions>
-        </hudson.model.ParametersDefinitionProperty>
-    </properties>
-    <scm class="hudson.scm.NullSCM"/>
-    <canRoam>true</canRoam>
-    <disabled>false</disabled>
-    <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-    <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-    <triggers/>
-    <concurrentBuild>false</concurrentBuild>
-    <builders/>
-    <publishers/>
-    <buildWrappers/>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.4.6">
+      <gitLabConnection></gitLabConnection>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>repository</name>
+          <description>the github organisation and repository name in the format: myorg/myrepo</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>pipeline</name>
+          <description>the pipeline to use for the project</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>Release</string>
+              <string>ReleaseAndStage</string>
+              <string>ReleaseStageAndPromote</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders/>
+  <publishers/>
+  <buildWrappers/>
 </org.jenkinsci.plugins.updatebot.ImportGithubRepoProject>

@@ -2,6 +2,7 @@ package jenkins
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
+var jenkinsLogPrefix = utils.Color("\x1b[36m") + "        "
 
 // Is404 returns true if this is a 404 error
 func Is404(err error) bool {
@@ -18,7 +20,7 @@ func Is404(err error) bool {
 
 // TriggerAndWaitForBuildToStart triggers the build and waits for a new Build for the given amount of time
 // or returns an error
-func TriggerAndWaitForBuildToStart(jenkins *gojenkins.Jenkins, job gojenkins.Job, buildStartWaitTime time.Duration) (*gojenkins.Build, error) {
+func TriggerAndWaitForBuildToStart(jenkins *gojenkins.Jenkins, job gojenkins.Job, buildStartWaitTime time.Duration) (result *gojenkins.Build, err error) {
 	previousBuildNumber := 0
 	previousBuild, err := jenkins.GetLastBuild(job)
 	jobUrl := job.Url
@@ -39,8 +41,7 @@ func TriggerAndWaitForBuildToStart(jenkins *gojenkins.Jenkins, job gojenkins.Job
 	attempts := 0
 
 	// lets wait for a new build to start
-	timeoutAt := time.Now().Add(buildStartWaitTime)
-	for {
+	fn := func() (bool, error) {
 		buildNumber := 0
 		attempts += 1
 		build, err := jenkins.GetLastBuild(job)
@@ -54,13 +55,13 @@ func TriggerAndWaitForBuildToStart(jenkins *gojenkins.Jenkins, job gojenkins.Job
 		}
 		if previousBuildNumber != buildNumber {
 			utils.LogInfof("triggered job %s build #%d\n", jobUrl, buildNumber)
-			return &build, nil
+			result = &build
+			return true, nil
 		}
-		if time.Now().After(timeoutAt) {
-			return nil, fmt.Errorf("Timed out waiting for build to start for for %s waited for %s", jobUrl, buildStartWaitTime.String())
-		}
-		time.Sleep(1 * time.Second)
+		return false, nil
 	}
+	err = gojenkins.Poll(1*time.Second, buildStartWaitTime, fmt.Sprintf("build to start for for %s", jobUrl), fn)
+	return
 }
 
 // TriggerAndWaitForBuildToStart triggers the build and waits for a new Build then waits for the Build to finish
@@ -80,23 +81,47 @@ func TriggerAndWaitForBuildToFinish(jenkins *gojenkins.Jenkins, job gojenkins.Jo
 // or returns an error
 func WaitForBuildToFinish(jenkins *gojenkins.Jenkins, job gojenkins.Job, buildNumber int, buildFinishWaitTime time.Duration) (*gojenkins.Build, error) {
 	jobUrl := job.Url
-	timeoutAt := time.Now().Add(buildFinishWaitTime)
 	utils.LogInfof("waiting for job %s build #%d to finish\n", jobUrl, buildNumber)
+	time.Sleep(1 * time.Second)
+	var result *gojenkins.Build
 
-	for {
-		time.Sleep(1 * time.Second)
-
+	fn := func() (bool, error) {
+		if result != nil {
+			return true, nil
+		}
 		b, err := jenkins.GetBuild(job, buildNumber)
 		if err != nil {
-			return nil, fmt.Errorf("error finding job %s build #%d status due to %v", jobUrl, buildNumber, err)
+			return false, fmt.Errorf("error finding job %s build #%d status due to %v", jobUrl, buildNumber, err)
 		}
 		if !b.Building {
-			return &b, nil
+			result = &b
+			return true, nil
 		}
-		if time.Now().After(timeoutAt) {
-			return nil, fmt.Errorf("Timed out waiting for job %s build #%d to finish. Waited for %s", jobUrl, buildNumber, buildFinishWaitTime.String())
-		}
+		return false, nil
 	}
+	writer := utils.NewPrefixWriter(os.Stdout, jenkinsLogPrefix)
+	logFn := jenkins.TailLogFunc(jenkins.GetBuildURL(job, buildNumber), writer)
+	/*
+	poller := jenkins.NewLogPoller(jenkins.GetBuildURL(job, buildNumber), os.Stdout)
+	logFn := func() (bool, error) {
+		return poller.Apply()
+	}
+	*/
+	fns := gojenkins.NewConditionFunc(fn, logFn)
+	err := gojenkins.Poll(1*time.Second, buildFinishWaitTime, fmt.Sprintf("job %s build #%d to finish", jobUrl, buildNumber), fns)
+	return result, err
+}
+
+// WaitForBuildLog
+func WaitForBuildLog(jenkins *gojenkins.Jenkins, buildURL string, buildFinishWaitTime time.Duration) error {
+	utils.LogInfof("waiting for job %s to finish\n", buildURL)
+	time.Sleep(1 * time.Second)
+
+	poller := jenkins.NewLogPoller(buildURL, os.Stdout)
+	logFn := func() (bool, error) {
+		return poller.Apply()
+	}
+	return gojenkins.Poll(1*time.Second, buildFinishWaitTime, fmt.Sprintf("waiting for job %s to finish\n", buildURL), logFn)
 }
 
 // AssertBuildSucceeded asserts that the given build succeeded

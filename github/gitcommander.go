@@ -12,6 +12,9 @@ import (
 	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
+var stdoutPrefix = utils.Color("\x1b[35m") + "        "
+var stderrPrefix = utils.Color("\x1b[34m") + "        "
+
 type GitCommander struct {
 	Dir      string
 	UseHttps bool
@@ -131,8 +134,8 @@ func runCommand(dir string, prog string, args ...string) error {
 	cmd := exec.Command(prog, args...)
 	cmd.Dir = dir
 	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = utils.NewPrefixWriter(os.Stdout, stdoutPrefix)
+	cmd.Stderr = utils.NewPrefixWriter(os.Stderr, stderrPrefix)
 	if err := cmd.Run(); err != nil {
 		text := prog + " " + strings.Join(args, " ")
 		return fmt.Errorf("Failed to run command %s in dir %s due to error %v", text, dir, err)
