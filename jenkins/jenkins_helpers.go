@@ -10,9 +10,7 @@ import (
 	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
-const (
-	jenkinsLogPrefix = "        "
-)
+var jenkinsLogPrefix = utils.Color("\x1b[36m") + "        "
 
 // Is404 returns true if this is a 404 error
 func Is404(err error) bool {

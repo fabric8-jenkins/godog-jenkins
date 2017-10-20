@@ -12,10 +12,8 @@ import (
 	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
-const (
-	stdoutPrefix = "        "
-	stderrPrefix = "        "
-)
+var stdoutPrefix = utils.Color("\x1b[35m") + "        "
+var stderrPrefix = utils.Color("\x1b[34m") + "        "
 
 type GitCommander struct {
 	Dir      string
