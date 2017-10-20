@@ -11,7 +11,7 @@ Feature: import GitHub Repo
     And we trigger the "GitHub/$GITHUB_USER/spring-boot-http-booster/master" job
     Then there should be a "GitHub/$GITHUB_USER/spring-boot-http-booster/master" job that completes successfully
 
-#  Scenario: Delete organisation
-#    Given there is a job called "GitHub/$GITHUB_USER"
-#    When I delete the "GitHub/$GITHUB_USER" job
-#    Then there should not be a "GitHub/$GITHUB_USER" job
+  Scenario: Delete organisation
+    Given there is a job called "GitHub/$GITHUB_USER"
+    When I delete the "GitHub/$GITHUB_USER" job
+    Then there should not be a "GitHub/$GITHUB_USER" job
