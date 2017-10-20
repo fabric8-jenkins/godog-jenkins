@@ -38,10 +38,9 @@ func CreateAssert(t *ErrorSlice) *assert.Assertions {
 	return assert.New(t)
 }
 
-
 func AssertFileDoesNotExist(path string) error {
 	if _, err := os.Stat("/path/to/whatever"); os.IsNotExist(err) {
-	  return nil
+		return nil
 	}
 	return fmt.Errorf("The path %s exists!")
 }

@@ -2,6 +2,7 @@ package jenkins
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -9,6 +10,9 @@ import (
 	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
+const (
+	jenkinsLogPrefix = "        "
+)
 
 // Is404 returns true if this is a 404 error
 func Is404(err error) bool {
@@ -38,7 +42,6 @@ func TriggerAndWaitForBuildToStart(jenkins *gojenkins.Jenkins, job gojenkins.Job
 	}
 	attempts := 0
 
-	
 	// lets wait for a new build to start
 	fn := func() (bool, error) {
 		buildNumber := 0
@@ -59,7 +62,7 @@ func TriggerAndWaitForBuildToStart(jenkins *gojenkins.Jenkins, job gojenkins.Job
 		}
 		return false, nil
 	}
-	err = utils.Poll(1 * time.Second, buildStartWaitTime, fn, fmt.Sprintf("build to start for for %s", jobUrl))
+	err = gojenkins.Poll(1*time.Second, buildStartWaitTime, fmt.Sprintf("build to start for for %s", jobUrl), fn)
 	return
 }
 
@@ -78,13 +81,16 @@ func TriggerAndWaitForBuildToFinish(jenkins *gojenkins.Jenkins, job gojenkins.Jo
 
 // TriggerAndWaitForBuildToStart triggers the build and waits for a new Build then waits for the Build to finish
 // or returns an error
-func WaitForBuildToFinish(jenkins *gojenkins.Jenkins, job gojenkins.Job, buildNumber int, buildFinishWaitTime time.Duration) (result *gojenkins.Build, err error) {
+func WaitForBuildToFinish(jenkins *gojenkins.Jenkins, job gojenkins.Job, buildNumber int, buildFinishWaitTime time.Duration) (*gojenkins.Build, error) {
 	jobUrl := job.Url
-
 	utils.LogInfof("waiting for job %s build #%d to finish\n", jobUrl, buildNumber)
 	time.Sleep(1 * time.Second)
+	var result *gojenkins.Build
 
 	fn := func() (bool, error) {
+		if result != nil {
+			return true, nil
+		}
 		b, err := jenkins.GetBuild(job, buildNumber)
 		if err != nil {
 			return false, fmt.Errorf("error finding job %s build #%d status due to %v", jobUrl, buildNumber, err)
@@ -95,8 +101,29 @@ func WaitForBuildToFinish(jenkins *gojenkins.Jenkins, job gojenkins.Job, buildNu
 		}
 		return false, nil
 	}
-	err = utils.Poll(1 * time.Second, buildFinishWaitTime, fn, fmt.Sprintf("job %s build #%d to finish", jobUrl, buildNumber))
-	return
+	writer := utils.NewPrefixWriter(os.Stdout, jenkinsLogPrefix)
+	logFn := jenkins.TailLogFunc(jenkins.GetBuildURL(job, buildNumber), writer)
+	/*
+	poller := jenkins.NewLogPoller(jenkins.GetBuildURL(job, buildNumber), os.Stdout)
+	logFn := func() (bool, error) {
+		return poller.Apply()
+	}
+	*/
+	fns := gojenkins.NewConditionFunc(fn, logFn)
+	err := gojenkins.Poll(1*time.Second, buildFinishWaitTime, fmt.Sprintf("job %s build #%d to finish", jobUrl, buildNumber), fns)
+	return result, err
+}
+
+// WaitForBuildLog
+func WaitForBuildLog(jenkins *gojenkins.Jenkins, buildURL string, buildFinishWaitTime time.Duration) error {
+	utils.LogInfof("waiting for job %s to finish\n", buildURL)
+	time.Sleep(1 * time.Second)
+
+	poller := jenkins.NewLogPoller(buildURL, os.Stdout)
+	logFn := func() (bool, error) {
+		return poller.Apply()
+	}
+	return gojenkins.Poll(1*time.Second, buildFinishWaitTime, fmt.Sprintf("waiting for job %s to finish\n", buildURL), logFn)
 }
 
 // AssertBuildSucceeded asserts that the given build succeeded

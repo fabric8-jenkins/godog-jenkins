@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	infoPrefix = "\t\t"
+	infoPrefix = "      "
 )
 
 // LogInfo info logging

@@ -16,8 +16,6 @@ import (
 )
 
 const (
-	maxWaitForImportBuildToComplete = 2 * time.Minute
-
 	maxWaitForBuildToStart     = 20 * time.Second
 	maxWaitForBuildToBeCreated = 50 * time.Second
 	maxWaitForBuildToComplete  = 40 * time.Minute
@@ -38,6 +36,14 @@ func (f *importFeature) thereIsAFabricImportJob(arg int) error {
 	if err != nil {
 		return fmt.Errorf("error getting a Jenkins client %v", err)
 	}
+
+	/*
+	err = WaitForBuildLog(jenkins, "/job/GitHub/job/jstrachan/job/spring-boot-http-booster/job/master/3", maxWaitForImportBuildToComplete)
+	if err != nil {
+		return fmt.Errorf("Failed to tail log %v", err)
+	}
+	return fmt.Errorf("TODO")
+	*/
 
 	jobName := f.ImportJobName
 	f.job, err = jenkins.GetJob(jobName)
@@ -198,7 +204,7 @@ func (f *importFeature) weMergeThePRWhichIsCreated() error {
 }
 
 func (f *importFeature) weTriggerTheJob(jobExpression string) error {
-	job, err := f.getJobByExpression(jobExpression)
+	job, err := f.waitForJobByExpression(jobExpression, maxWaitForBuildToBeCreated)
 	if err != nil {
 		return err
 	}
@@ -249,8 +255,7 @@ func (f *importFeature) waitForJobByExpression(jobExpression string, timeout tim
 		}
 		return false, nil
 	}
-
-	err = utils.Poll(1 * time.Second, timeout, fn, fmt.Sprintf("build to be created for %s", fullPath))
+	err = gojenkins.Poll(1*time.Second, timeout, fmt.Sprintf("build to be created for %s", fullPath), fn)
 	return
 }
 

@@ -1,5 +1,5 @@
 hash: 8cfe1b3e177c5ac90719fe9507f8d0b1402e3f187680e12689d5dafa7790c979
-updated: 2017-10-18T16:57:58.669966+01:00
+updated: 2017-10-20T14:37:27.256639+01:00
 imports:
 - name: github.com/cucumber/gherkin-go
   version: b4fe8f6d1dc26a0b1fb8e677244aa8f775a944f3
@@ -13,7 +13,7 @@ imports:
   subpackages:
   - spew
 - name: github.com/fabric8-jenkins/golang-jenkins
-  version: 6faed8a84131315e9c92f0c566dfaa51ed368f72
+  version: 6dc3d739aa48849ddd28f55ff67053fdf09483b6
 - name: github.com/google/go-github
   version: a021c14a5f1960591b0e1773a4a2ef8257ec93b8
   subpackages:

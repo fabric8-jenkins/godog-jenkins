@@ -15,7 +15,6 @@ func MandatoryEnvVar(name string) (string, error) {
 	return answer, nil
 }
 
-
 // ReplaceEnvVars replaces all environment variable expressions in the given string
 func ReplaceEnvVars(expression string) string {
 	environ := os.Environ()
@@ -24,8 +23,8 @@ func ReplaceEnvVars(expression string) string {
 		if len(s) == 2 {
 			name := s[0]
 			value := s[1]
-			expression = strings.Replace(expression, "$" + name, value, -1)
-			expression = strings.Replace(expression, "${" + name + "}", value, -1)
+			expression = strings.Replace(expression, "$"+name, value, -1)
+			expression = strings.Replace(expression, "${"+name+"}", value, -1)
 		}
 	}
 	return expression

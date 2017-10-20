@@ -2,9 +2,10 @@ package github
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/DATA-DOG/godog"
-	"path/filepath"
+	"github.com/fabric8-jenkins/godog-jenkins/utils"
 )
 
 func (f *ForkFeature) thereIsNoForkOf(repo string) error {
@@ -17,8 +18,6 @@ func (f *ForkFeature) thereIsNoForkOf(repo string) error {
 	path := filepath.Join(f.GitCommander.Dir, repo)
 	return AssertFileDoesNotExist(path)
 }
-
-
 
 func (f *ForkFeature) thereShouldBeAForkForTheCurrentUserWhichHasTheSameLastCommitAs(forkedRepo string) error {
 	gitcmder := f.GitCommander
