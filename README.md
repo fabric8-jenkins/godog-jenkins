@@ -29,5 +29,6 @@ cd $GOPATH/src/github.com/fabric8-jenkins/godog-jenkins/jenkins/
 ```
 And trigger the tests:
 ```
+cd jenkins
 godog
 ```
