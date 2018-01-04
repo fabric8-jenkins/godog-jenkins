@@ -6,7 +6,11 @@ This test project connects to a running Jenkins instance and runs a number of fe
 
 - __golang__ https://golang.org/doc/install#install
 - __get Jenkins X admin token__ to be replaced with OAuth
-    - Visit http://you.jenkins.io/user/admin/configure
+    - Visit the admin user config page by running
+        ```
+        open http://$(kubectl get ing jenkins | awk '{print $2}' | tail -n 1)/user/admin/configure
+        ```
+        or opening http://your.jenkins.io/user/admin/configure
     - Click the `API Token` button
     - Note the token for use below
 
