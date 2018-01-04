@@ -11,7 +11,7 @@ This test project connects to a running Jenkins instance and runs a number of fe
         open http://$(kubectl get ing jenkins | awk '{print $2}' | tail -n 1)/user/admin/configure
         ```
         or opening http://your.jenkins.io/user/admin/configure
-    - Click the `API Token` button
+    - Click the `Show API Token...` button
     - Note the token for use below
 
 ## Setup
