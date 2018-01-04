@@ -1,7 +1,7 @@
 package github
 
 import (
-	"github.com/fabric8-jenkins/godog-jenkins/utils"
+	"github.com/jenkins-x/godog-jenkins/utils"
 )
 
 type ForkFeature struct {

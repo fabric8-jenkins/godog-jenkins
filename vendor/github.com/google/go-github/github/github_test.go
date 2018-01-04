@@ -22,17 +22,6 @@ import (
 	"time"
 )
 
-var (
-	// mux is the HTTP request multiplexer used with the test server.
-	mux *http.ServeMux
-
-	// client is the GitHub client being tested.
-	client *Client
-
-	// server is a test HTTP server used to provide mock API responses.
-	server *httptest.Server
-)
-
 const (
 	// baseURLPath is a non-empty Client.BaseURL path to use during tests,
 	// to ensure relative URLs are used for all endpoints. See issue #752.
@@ -42,8 +31,8 @@ const (
 // setup sets up a test HTTP server along with a github.Client that is
 // configured to talk to that test server. Tests should register handlers on
 // mux which provide mock responses for the API method being tested.
-func setup() {
-	// test server
+func setup() (client *Client, mux *http.ServeMux, serverURL string, teardown func()) {
+	// mux is the HTTP request multiplexer used with the test server.
 	mux = http.NewServeMux()
 
 	// We want to ensure that tests catch mistakes where the endpoint URL is
@@ -61,18 +50,17 @@ func setup() {
 		http.Error(w, "Client.BaseURL path prefix is not preserved in the request URL.", http.StatusInternalServerError)
 	})
 
-	server = httptest.NewServer(apiHandler)
+	// server is a test HTTP server used to provide mock API responses.
+	server := httptest.NewServer(apiHandler)
 
-	// github client configured to use test server
+	// client is the GitHub client being tested and is
+	// configured to use test server.
 	client = NewClient(nil)
 	url, _ := url.Parse(server.URL + baseURLPath + "/")
 	client.BaseURL = url
 	client.UploadURL = url
-}
 
-// teardown closes the test HTTP server.
-func teardown() {
-	server.Close()
+	return client, mux, server.URL, server.Close
 }
 
 // openTestFile creates a new file with the given name and content for testing.
@@ -183,6 +171,41 @@ func TestNewClient(t *testing.T) {
 	}
 	if got, want := c.UserAgent, userAgent; got != want {
 		t.Errorf("NewClient UserAgent is %v, want %v", got, want)
+	}
+}
+
+func TestNewEnterpriseClient(t *testing.T) {
+	baseURL := "https://custom-url/"
+	uploadURL := "https://custom-upload-url/"
+	c, err := NewEnterpriseClient(baseURL, uploadURL, nil)
+	if err != nil {
+		t.Fatalf("NewEnterpriseClient returned unexpected error: %v", err)
+	}
+
+	if got, want := c.BaseURL.String(), baseURL; got != want {
+		t.Errorf("NewClient BaseURL is %v, want %v", got, want)
+	}
+	if got, want := c.UploadURL.String(), uploadURL; got != want {
+		t.Errorf("NewClient UploadURL is %v, want %v", got, want)
+	}
+}
+
+func TestNewEnterpriseClient_addsTrailingSlashToURLs(t *testing.T) {
+	baseURL := "https://custom-url"
+	uploadURL := "https://custom-upload-url"
+	formattedBaseURL := baseURL + "/"
+	formattedUploadURL := uploadURL + "/"
+
+	c, err := NewEnterpriseClient(baseURL, uploadURL, nil)
+	if err != nil {
+		t.Fatalf("NewEnterpriseClient returned unexpected error: %v", err)
+	}
+
+	if got, want := c.BaseURL.String(), formattedBaseURL; got != want {
+		t.Errorf("NewClient BaseURL is %v, want %v", got, want)
+	}
+	if got, want := c.UploadURL.String(), formattedUploadURL; got != want {
+		t.Errorf("NewClient UploadURL is %v, want %v", got, want)
 	}
 }
 
@@ -382,7 +405,7 @@ func TestResponse_populatePageValues_invalid(t *testing.T) {
 }
 
 func TestDo(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	type foo struct {
@@ -407,7 +430,7 @@ func TestDo(t *testing.T) {
 }
 
 func TestDo_httpError(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -429,7 +452,7 @@ func TestDo_httpError(t *testing.T) {
 // function. A redirect loop is pretty unlikely to occur within the GitHub
 // API, but does allow us to exercise the right code path.
 func TestDo_redirectLoop(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -470,7 +493,7 @@ func TestDo_sanitizeURL(t *testing.T) {
 }
 
 func TestDo_rateLimit(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -498,7 +521,7 @@ func TestDo_rateLimit(t *testing.T) {
 
 // ensure rate limit is still parsed, even for error responses
 func TestDo_rateLimit_errorResponse(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -530,7 +553,7 @@ func TestDo_rateLimit_errorResponse(t *testing.T) {
 
 // Ensure *RateLimitError is returned when API rate limit is exceeded.
 func TestDo_rateLimit_rateLimitError(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -569,7 +592,7 @@ func TestDo_rateLimit_rateLimitError(t *testing.T) {
 
 // Ensure a network call is not made when it's known that API rate limit is still exceeded.
 func TestDo_rateLimit_noNetworkCall(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	reset := time.Now().UTC().Add(time.Minute).Round(time.Second) // Rate reset is a minute from now, with 1 second precision.
@@ -624,7 +647,7 @@ func TestDo_rateLimit_noNetworkCall(t *testing.T) {
 // Ensure *AbuseRateLimitError is returned when the response indicates that
 // the client has triggered an abuse detection mechanism.
 func TestDo_rateLimit_abuseRateLimitError(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -655,7 +678,7 @@ func TestDo_rateLimit_abuseRateLimitError(t *testing.T) {
 
 // Ensure *AbuseRateLimitError.RetryAfter is parsed correctly.
 func TestDo_rateLimit_abuseRateLimitError_retryAfter(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -687,7 +710,7 @@ func TestDo_rateLimit_abuseRateLimitError_retryAfter(t *testing.T) {
 }
 
 func TestDo_noContent(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -826,7 +849,7 @@ func TestError_Error(t *testing.T) {
 }
 
 func TestRateLimits(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/rate_limit", func(w http.ResponseWriter, r *http.Request) {
@@ -869,7 +892,7 @@ func TestRateLimits(t *testing.T) {
 }
 
 func TestUnauthenticatedRateLimitedTransport(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -935,7 +958,7 @@ func TestUnauthenticatedRateLimitedTransport_transport(t *testing.T) {
 }
 
 func TestBasicAuthTransport(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	username, password, otp := "u", "p", "123456"
@@ -1017,5 +1040,14 @@ func TestFormatRateReset(t *testing.T) {
 	want = "[rate limit was reset 120m02s ago]"
 	if got != want {
 		t.Errorf("Format is wrong. got: %v, want: %v", got, want)
+	}
+}
+
+func TestNestedStructAccessorNoPanic(t *testing.T) {
+	issue := &Issue{User: nil}
+	got := issue.GetUser().GetPlan().GetName()
+	want := ""
+	if got != want {
+		t.Errorf("Issues.Get.GetUser().GetPlan().GetName() returned %+v, want %+v", got, want)
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/github"
-	"github.com/fabric8-jenkins/godog-jenkins/utils"
+	"github.com/jenkins-x/godog-jenkins/utils"
 )
 
 var stdoutPrefix = utils.Color("\x1b[35m") + "        "

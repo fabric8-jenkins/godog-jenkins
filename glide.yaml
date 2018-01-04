@@ -1,10 +1,9 @@
 package: github.com/fabric8-jenkins/godog-jenkins
 import:
 - package: github.com/DATA-DOG/godog
-- package: github.com/fabric8-jenkins/golang-jenkins
+- package: github.com/jenkins-x/golang-jenkins
 - package: github.com/cucumber/gherkin-go
   version: ^4.0.0
 - package: github.com/google/go-github
 - package: github.com/google/go-querystring
 - package: github.com/stretchr/testify
-

@@ -14,7 +14,7 @@ import (
 )
 
 func TestAppsService_ListRepos(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/installation/repositories", func(w http.ResponseWriter, r *http.Request) {
@@ -39,8 +39,34 @@ func TestAppsService_ListRepos(t *testing.T) {
 	}
 }
 
+func TestAppsService_ListUserRepos(t *testing.T) {
+	client, mux, _, teardown := setup()
+	defer teardown()
+
+	mux.HandleFunc("/user/installations/1/repositories", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeIntegrationPreview)
+		testFormValues(t, r, values{
+			"page":     "1",
+			"per_page": "2",
+		})
+		fmt.Fprint(w, `{"repositories": [{"id":1}]}`)
+	})
+
+	opt := &ListOptions{Page: 1, PerPage: 2}
+	repositories, _, err := client.Apps.ListUserRepos(context.Background(), 1, opt)
+	if err != nil {
+		t.Errorf("Apps.ListUserRepos returned error: %v", err)
+	}
+
+	want := []*Repository{{ID: Int(1)}}
+	if !reflect.DeepEqual(repositories, want) {
+		t.Errorf("Apps.ListUserRepos returned %+v, want %+v", repositories, want)
+	}
+}
+
 func TestAppsService_AddRepository(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/apps/installations/1/repositories/1", func(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +86,7 @@ func TestAppsService_AddRepository(t *testing.T) {
 }
 
 func TestAppsService_RemoveRepository(t *testing.T) {
-	setup()
+	client, mux, _, teardown := setup()
 	defer teardown()
 
 	mux.HandleFunc("/apps/installations/1/repositories/1", func(w http.ResponseWriter, r *http.Request) {

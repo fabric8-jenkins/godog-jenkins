@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/DATA-DOG/godog"
-	"github.com/fabric8-jenkins/godog-jenkins/utils"
+	"github.com/jenkins-x/godog-jenkins/utils"
 )
 
 func thereIsAJobCalled(jobExpression string) error {

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/github"
-	"github.com/fabric8-jenkins/godog-jenkins/utils"
+	"github.com/jenkins-x/godog-jenkins/utils"
 )
 
 type UserRepositoryName struct {
