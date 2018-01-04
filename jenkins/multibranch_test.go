@@ -17,7 +17,17 @@ func thereIsAJenkinsCredential(arg1 string) error {
 		return fmt.Errorf("error getting a Jenkins client %v", err)
 	}
 
-	err = jenkins.CreateCredential("bdd-test10", "rawlingsj10", "test")
+	githubUser := os.Getenv("GITHUB_USER")
+	if githubUser == "" {
+		return fmt.Errorf("GITHUB_USER env var not set")
+	}
+
+	githubPassword := os.Getenv("GITHUB_PASSWORD")
+	if githubUser == "" {
+		return fmt.Errorf("GITHUB_PASSWORD env var not set")
+	}
+
+	err = jenkins.CreateCredential("bdd-test", githubUser, githubPassword)
 	if err != nil {
 		return fmt.Errorf("error creating jenkins credential %s %v", "bdd-test", err)
 	}
