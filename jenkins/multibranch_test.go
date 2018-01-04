@@ -3,6 +3,10 @@ package jenkins
 import (
 	"fmt"
 
+	"os"
+
+	"strings"
+
 	"github.com/DATA-DOG/godog"
 	"github.com/jenkins-x/godog-jenkins/utils"
 )
@@ -29,6 +33,13 @@ func weCreateAMultibranchJobCalled(jobName string) error {
 	if err != nil {
 		return err
 	}
+
+	githubUser := os.Getenv("GITHUB_USER")
+	if githubUser == "" {
+		return fmt.Errorf("GITHUB_USER env var not set")
+	}
+
+	jobXML = strings.Replace(jobXML, "$GITHUB_USER", githubUser, 1)
 	err = jenkins.CreateJobWithXML(jobXML, jobName)
 	if err != nil {
 		return fmt.Errorf("error creating Job %v", err)
