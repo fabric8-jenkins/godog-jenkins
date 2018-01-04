@@ -5,14 +5,18 @@ This test project connects to a running Jenkins instance and runs a number of fe
 ## Prerequisits
 
 - __golang__ https://golang.org/doc/install#install
+- __get Jenkins X admin token__ to be replaced with OAuth
+    - Visit http://you.jenkins.io/user/admin/configure
+    - Click the `API Token` button
+    - Note the token for use below
 
 ## Setup
 
 Set the following environment variables:
 ```
 export BDD_JENKINS_URL=http://your.jenkins.io
-export BDD_JENKINS_TOKEN=admin
 export BDD_JENKINS_USERNAME=admin
+export BDD_JENKINS_TOKEN=1234abcd
 
 export GITHUB_USER=rawlingsj
 export GITHUB_PASSWORD=myPersonalAccessTokenGoesHere
