@@ -11,7 +11,7 @@ import (
 	"github.com/jenkins-x/godog-jenkins/utils"
 )
 
-func thereIsAJenkinsCredential(arg1 string) error {
+func thereIsAJenkinsCredential(credentialID string) error {
 	jenkins, err := utils.GetJenkinsClient()
 	if err != nil {
 		return fmt.Errorf("error getting a Jenkins client %v", err)
@@ -27,7 +27,7 @@ func thereIsAJenkinsCredential(arg1 string) error {
 		return fmt.Errorf("GITHUB_PASSWORD env var not set")
 	}
 
-	err = jenkins.CreateCredential("bdd-test", githubUser, githubPassword)
+	err = jenkins.CreateCredential(credentialID, githubUser, githubPassword)
 	if err != nil {
 		return fmt.Errorf("error creating jenkins credential %s %v", "bdd-test", err)
 	}

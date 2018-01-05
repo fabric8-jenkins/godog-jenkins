@@ -13,6 +13,7 @@ This test project connects to a running Jenkins instance and runs a number of fe
         or opening http://your.jenkins.io/user/admin/configure
     - Click the `Show API Token...` button
     - Note the token for use below
+- __GitHub personal access token__ you will need a personal access token that has the `public_repo` scope so that we can tag releases
 
 ## Setup
 
@@ -69,7 +70,7 @@ e.g. replace your username
 ```
 curl https://api.github.com/authorizations \
 --user "rawlingsj" \
---data '{"scopes":["repo:status"],"note":"jx"}'
+--data '{"scopes":["public_repo"],"note":"jx"}'
 ``` 
 
 You will be promted for your GitHub password then you will see a `"token":` returned.
