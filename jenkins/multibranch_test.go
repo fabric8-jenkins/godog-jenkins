@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/DATA-DOG/godog"
+	"github.com/jenkins-x/godog-jenkins/kubernetes"
 	"github.com/jenkins-x/godog-jenkins/utils"
 )
 
@@ -85,8 +86,8 @@ func thereShouldBeAJobThatCompletesSuccessfully(jobName string) error {
 	return ThereShouldBeAJobThatCompletesSuccessfully(jobName, jenkins)
 }
 
-func theApplicationIsInTheEnvironment(arg1, arg2, arg3 string) error {
-	return godog.ErrPending
+func theApplicationIsInTheEnvironment(app, state, environment string) error {
+	return kubernetes.CheckPodStatus(app, state, environment)
 }
 
 func MultibranchFeatureContext(s *godog.Suite) {

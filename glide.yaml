@@ -7,3 +7,8 @@ import:
 - package: github.com/google/go-github
 - package: github.com/google/go-querystring
 - package: github.com/stretchr/testify
+- package: k8s.io/client-go
+  version: v6.0.0
+- package: k8s.io/apimachinery
+- package: github.com/imdario/mergo
+  version: 0.2.4
