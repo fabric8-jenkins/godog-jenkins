@@ -42,8 +42,12 @@ check: fmt test
 #	CGO_ENABLED=$(CGO_ENABLED) $(GO) build $(BUILDFLAGS) -o build/$(NAME) $(NAME).go
 
 test:
+	cd jx && godog
 	cd github && godog
 	cd jenkins && godog
+
+jx:
+	cd jx && godog
 
 fmt:
 	@FORMATTED=`$(GO) fmt $(PACKAGE_DIRS)`
