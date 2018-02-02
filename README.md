@@ -11,6 +11,24 @@ This test project connects to a running Jenkins instance and runs a number of fe
     - Note the token for use below
 - __GitHub personal access token__ you will need a personal access token that has the `public_repo` scope so that we can tag releases
 
+## JX BDD tests
+
+The bdd tests will use your local jx setup in `~/.jx` and defaults to the current git provider in `~/.jx/gitAuth.yaml`
+
+To specify a specific git provider use:
+
+    export GIT_PROVIDER_URL="github.com"
+
+Passing in the Git provider URL of your choice
+
+### Interactive mode
+
+If you have not setup API tokens for your Jenkins or git provider use interactive mode to run a test:
+
+    export JX_INTERACTIVE="true"
+
+You can then enter the required API tokens and whatnot on the first run. Future tests will not need interactive mode
+
 ## Setup
 
 Set the following environment variables:

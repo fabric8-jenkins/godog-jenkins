@@ -14,11 +14,12 @@ import (
 )
 
 type importTest struct {
-	Factory   cmdutil.Factory
-	Errors    *utils.ErrorSlice
-	SourceDir string
-	WorkDir   string
-	Args      []string
+	Factory     cmdutil.Factory
+	Interactive bool
+	Errors      *utils.ErrorSlice
+	SourceDir   string
+	WorkDir     string
+	Args        []string
 }
 
 func (o *importTest) aDirectoryContainingASpringBootApplication() error {
@@ -55,7 +56,7 @@ func (o *importTest) runningInThatDirectory(commandLine string) error {
 	if len(o.Args) > 0 {
 		remaining = append(remaining, o.Args...)
 	}
-	err = utils.RunCommand(o.WorkDir, cmd, remaining...)
+	err = utils.RunCommandInteractive(o.Interactive, o.WorkDir, cmd, remaining...)
 	if err != nil {
 		return err
 	}
@@ -95,6 +96,7 @@ func (o *importTest) gitProviderURL() (string, error) {
 func ImportFeatureContext(s *godog.Suite) {
 	o := &importTest{
 		Factory:   cmdutil.NewFactory(),
+		Interactive: os.Getenv("JX_INTERACTIVE") == "true",
 		Errors:    utils.CreateErrorSlice(),
 		SourceDir: "../examples/example-spring-boot",
 		Args:      []string{},
