@@ -1,21 +1,20 @@
 package jx
 
 import (
-	/*
 	"fmt"
-	"os"
-	"strings"
-
-	*/
-	"github.com/DATA-DOG/godog"
-	"github.com/stretchr/testify/assert"
-	"github.com/jenkins-x/godog-jenkins/utils"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/DATA-DOG/godog"
+	"github.com/jenkins-x/godog-jenkins/utils"
+	"github.com/jenkins-x/jx/pkg/util"
+	"github.com/stretchr/testify/assert"
+	cmdutil "github.com/jenkins-x/jx/pkg/jx/cmd/util"
 )
 
 type importTest struct {
+	Factory   cmdutil.Factory
 	Errors    *utils.ErrorSlice
 	SourceDir string
 	WorkDir   string
@@ -25,18 +24,18 @@ type importTest struct {
 func (o *importTest) aDirectoryContainingASpringBootApplication() error {
 	tmpDir, err := ioutil.TempDir("", "test-jx-import-")
 	if err != nil {
-	  return err
+		return err
 	}
 	err = os.MkdirAll(tmpDir, utils.DefaultWritePermissions)
 	if err != nil {
-	  return err
+		return err
 	}
 	o.WorkDir = tmpDir
 	assert.NotEmpty(o.Errors, o.SourceDir)
 	assert.DirExists(o.Errors, o.SourceDir)
-	err = utils.RunCommand("", "bash", "-c", "cp -r " + o.SourceDir + " " + o.WorkDir)
+	err = utils.RunCommand("", "bash", "-c", "cp -r "+o.SourceDir+" "+o.WorkDir)
 	if err != nil {
-	  return err
+		return err
 	}
 	assert.DirExists(o.Errors, o.WorkDir)
 	return o.Errors.Error()
@@ -47,13 +46,18 @@ func (o *importTest) runningInThatDirectory(commandLine string) error {
 	assert.NotEmpty(o.Errors, args, "not enough arguments")
 	cmd := args[0]
 	assert.Equal(o.Errors, "jx", cmd)
-	remaining := append(args[1:], "-b")
+	gitProviderURL, err := o.gitProviderURL()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Using git provider URL %s\n", util.ColorInfo(gitProviderURL))
+	remaining := append(args[1:], "-b", "--git-provider-url", gitProviderURL)
 	if len(o.Args) > 0 {
 		remaining = append(remaining, o.Args...)
 	}
-	err := utils.RunCommand(o.WorkDir, cmd, remaining...)
+	err = utils.RunCommand(o.WorkDir, cmd, remaining...)
 	if err != nil {
-	  return err
+		return err
 	}
 	return o.Errors.Error()
 }
@@ -66,11 +70,34 @@ func (o *importTest) theApplicationShouldBeBuiltAndPromotedViaCICD() error {
 	return godog.ErrPending
 }
 
+func (o *importTest) gitProviderURL() (string, error) {
+	gitProviderURL := os.Getenv("GIT_PROVIDER_URL")
+	if gitProviderURL != "" {
+		return gitProviderURL, nil
+	}
+	// find the default  load the default one from the current ~/.jx/jenkinsAuth.yaml
+	authConfigSvc, err := o.Factory.CreateGitAuthConfigService()
+	if err != nil {
+		return "", err
+	}
+	config := authConfigSvc.Config()
+	url := config.CurrentServer
+	if url != "" {
+		return url, nil
+	}
+	servers := config.Servers
+	if len(servers) == 0 {
+		return "", fmt.Errorf("No servers in the ~/.jx/gitAuth.yaml file!")
+	}
+	return servers[0].URL, nil
+}
+
 func ImportFeatureContext(s *godog.Suite) {
 	o := &importTest{
+		Factory:   cmdutil.NewFactory(),
 		Errors:    utils.CreateErrorSlice(),
 		SourceDir: "../examples/example-spring-boot",
-		Args:      []string{"--git-provider-url", "http://localhost:3000/"},
+		Args:      []string{},
 	}
 	s.Step(`^a directory containing a Spring Boot application$`, o.aDirectoryContainingASpringBootApplication)
 	s.Step(`^running "([^"]*)" in that directory$`, o.runningInThatDirectory)
