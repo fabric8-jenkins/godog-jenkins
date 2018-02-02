@@ -15,9 +15,14 @@ This test project connects to a running Jenkins instance and runs a number of fe
 
 To run the JX BDD tests:
 
-    cd jx
+    cd jx/import
     godog
-    
+
+for the spring tests
+
+    cd jx/spring
+    godog
+      
 The bdd tests will use your local jx setup in `~/.jx` and defaults to the current git provider in `~/.jx/gitAuth.yaml`
 
 To specify a specific git provider use:

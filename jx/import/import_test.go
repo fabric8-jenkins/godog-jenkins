@@ -1,4 +1,4 @@
-package jx
+package jximport
 
 import (
 	"fmt"
@@ -98,7 +98,7 @@ func ImportFeatureContext(s *godog.Suite) {
 		Factory:   cmdutil.NewFactory(),
 		Interactive: os.Getenv("JX_INTERACTIVE") == "true",
 		Errors:    utils.CreateErrorSlice(),
-		SourceDir: "../examples/example-spring-boot",
+		SourceDir: "../../examples/example-spring-boot",
 		Args:      []string{},
 	}
 	s.Step(`^a directory containing a Spring Boot application$`, o.aDirectoryContainingASpringBootApplication)
