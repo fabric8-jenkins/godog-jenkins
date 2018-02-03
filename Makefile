@@ -46,8 +46,8 @@ test:
 	cd github && godog
 	cd jenkins && godog
 
-jx:
-	cd jx && godog
+jx: jx/import/*.go
+	cd jx/import && godog
 
 fmt:
 	@FORMATTED=`$(GO) fmt $(PACKAGE_DIRS)`

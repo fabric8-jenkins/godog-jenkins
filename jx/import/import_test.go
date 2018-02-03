@@ -34,7 +34,7 @@ func (o *importTest) aDirectoryContainingASpringBootApplication() error {
 	o.WorkDir = tmpDir
 	assert.NotEmpty(o.Errors, o.SourceDir)
 	assert.DirExists(o.Errors, o.SourceDir)
-	err = utils.RunCommand("", "bash", "-c", "cp -r "+o.SourceDir+" "+o.WorkDir)
+	err = utils.RunCommand("", "bash", "-c", "cp -r "+o.SourceDir+"/* "+o.WorkDir)
 	if err != nil {
 		return err
 	}
