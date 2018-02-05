@@ -12,13 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	cmdutil "github.com/jenkins-x/jx/pkg/jx/cmd/util"
 	"path/filepath"
+	"github.com/jenkins-x/godog-jenkins/common"
 )
 
 type springTest struct {
-	Factory     cmdutil.Factory
-	Interactive bool
-	Errors      *utils.ErrorSlice
-	WorkDir     string
+	common.CommonTest
+
 	Args        []string
 }
 
@@ -45,7 +44,7 @@ func (o *springTest) runningInThatDirectory(commandLine string) error {
 	assert.NotEmpty(o.Errors, args, "not enough arguments")
 	cmd := args[0]
 	assert.Equal(o.Errors, "jx", cmd)
-	gitProviderURL, err := o.gitProviderURL()
+	gitProviderURL, err := o.GitProviderURL()
 	if err != nil {
 		return err
 	}
@@ -73,41 +72,18 @@ func (o *springTest) thereShouldBeAJenkinsProjectCreate() error {
 	return godog.ErrPending
 }
 
-func (o *springTest) theApplicationShouldBeBuiltAndPromotedViaCICD() error {
-	return godog.ErrPending
-}
-
-func (o *springTest) gitProviderURL() (string, error) {
-	gitProviderURL := os.Getenv("GIT_PROVIDER_URL")
-	if gitProviderURL != "" {
-		return gitProviderURL, nil
-	}
-	// find the default  load the default one from the current ~/.jx/jenkinsAuth.yaml
-	authConfigSvc, err := o.Factory.CreateGitAuthConfigService()
-	if err != nil {
-		return "", err
-	}
-	config := authConfigSvc.Config()
-	url := config.CurrentServer
-	if url != "" {
-		return url, nil
-	}
-	servers := config.Servers
-	if len(servers) == 0 {
-		return "", fmt.Errorf("No servers in the ~/.jx/gitAuth.yaml file!")
-	}
-	return servers[0].URL, nil
-}
 
 func SpringFeatureContext(s *godog.Suite) {
 	o := &springTest{
-		Factory:     cmdutil.NewFactory(),
-		Interactive: os.Getenv("JX_INTERACTIVE") == "true",
-		Errors:      utils.CreateErrorSlice(),
+		CommonTest: common.CommonTest{
+			Factory:     cmdutil.NewFactory(),
+			Interactive: os.Getenv("JX_INTERACTIVE") == "true",
+			Errors:      utils.CreateErrorSlice(),
+		},
 		Args:        []string{},
 	}
 	s.Step(`^a work directory$`, o.aWorkDirectory)
 	s.Step(`^running "([^"]*)" in that directory$`, o.runningInThatDirectory)
 	s.Step(`^there should be a jenkins project create$`, o.thereShouldBeAJenkinsProjectCreate)
-	s.Step(`^the application should be built and promoted via CI \/ CD$`, o.theApplicationShouldBeBuiltAndPromotedViaCICD)
+	s.Step(`^the application should be built and promoted via CI \/ CD$`, o.TheApplicationShouldBeBuiltAndPromotedViaCICD())
 }
