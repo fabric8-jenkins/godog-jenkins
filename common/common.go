@@ -24,12 +24,33 @@ type CommonTest struct {
 // should be created in Jenkins and that the build should complete successfully
 func (o *CommonTest) TheApplicationShouldBeBuiltAndPromotedViaCICD() error {
 	_, folderName := filepath.Split(o.WorkDir)
-	// TODO hard coded :) - replace with code to use the Jenkins Auth
-	// via the o.gitProviderURL()
-	userName := "jstrachan"
+	f := o.Factory
+	gitURL, err := o.GitProviderURL()
+	if err != nil {
+	  return err
+	}
+	gitAuthSvc, err := f.CreateGitAuthConfigService()
+	if err != nil {
+	  return err
+	}
+	gitConfig := gitAuthSvc.Config()
+	server := gitConfig.GetServer(gitURL)
+	if server == nil {
+		return fmt.Errorf("Could not find a git auth user for git server URL %s", gitURL)
+	}
+	userName := server.CurrentUser
+	if userName == "" {
+		if len(server.Users) == 0 {
+			return fmt.Errorf("No users are configured for authentication with git server URL %s", gitURL)
+		}
+		userName = server.Users[0].Username
+	}
+	if userName == "" {
+		return fmt.Errorf("Could not detect username for git server URL %s", gitURL)
+	}
 	jobName := userName + "/" + folderName + "/master"
 	if o.JenkinsClient == nil {
-		client, err := o.Factory.GetJenkinsClient()
+		client, err := f.CreateJenkinsClient()
 		if err != nil {
 		  return err
 		}

@@ -9,10 +9,17 @@ import (
 	cmdutil "github.com/jenkins-x/jx/pkg/jx/cmd/util"
 )
 
-// GetOptions is the start of the data required to perform the operation.  As new fields are added, add them here instead of
-// referencing the cmd.Flags()
+// CreateOptions contains the command line options
 type CreateOptions struct {
 	CommonOptions
+
+	DisableImport bool
+	OutDir        string
+}
+
+// CreateProjectOptions contains the command line options
+type CreateProjectOptions struct {
+	ImportOptions
 
 	DisableImport bool
 	OutDir        string
@@ -21,8 +28,11 @@ type CreateOptions struct {
 var (
 	create_resources = `Valid resource types include:
 
-    * spring (aka 'springboot')
+	* archetype
 	* cluster
+	* env
+	* git
+    * spring (aka 'springboot')
     `
 
 	create_long = templates.LongDesc(`
@@ -57,6 +67,7 @@ func NewCmdCreate(f cmdutil.Factory, out io.Writer, errOut io.Writer) *cobra.Com
 	cmd.AddCommand(NewCmdCreateArchetype(f, out, errOut))
 	cmd.AddCommand(NewCmdCreateEnv(f, out, errOut))
 	cmd.AddCommand(NewCmdCreateGit(f, out, errOut))
+	cmd.AddCommand(NewCmdCreateJenkins(f, out, errOut))
 	cmd.AddCommand(NewCmdCreateSpring(f, out, errOut))
 	cmd.AddCommand(NewCmdCreateCluster(f, out, errOut))
 	return cmd
@@ -68,20 +79,19 @@ func (o *CreateOptions) Run() error {
 }
 
 // DoImport imports the project created at the given directory
-func (o *CreateOptions) DoImport(outDir string) error {
+func (o *CreateProjectOptions) ImportCreatedProject(outDir string) error {
 	if o.DisableImport {
 		return nil
 	}
-
-	importOptions := &ImportOptions{
-		CommonOptions:       o.CommonOptions,
-		Dir:                 outDir,
-		DisableDotGitSearch: true,
-	}
+	importOptions := &o.ImportOptions
+	importOptions.Dir = outDir
+	importOptions.DisableDotGitSearch = true
 	return importOptions.Run()
 }
 
-func addCreateAppFlags(cmd *cobra.Command, options *CreateOptions) {
+func (options *CreateProjectOptions) addCreateAppFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&options.DisableImport, "no-import", "", false, "Disable import after the creation")
 	cmd.Flags().StringVarP(&options.OutDir, "output-dir", "o", "", "Directory to output the project to. Defaults to the current directory")
+
+	options.addImportFlags(cmd, true)
 }

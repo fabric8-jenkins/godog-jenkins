@@ -114,14 +114,13 @@ func NewCmdInstall(f cmdutil.Factory, out io.Writer, errOut io.Writer) *cobra.Co
 
 // Run implements this command
 func (options *InstallOptions) Run() error {
-
 	client, _, err := options.Factory.CreateClient()
 	if err != nil {
 		return err
 	}
 	options.kubeClient = client
 
-	options.Provider, err = GetCloudProvider(options.Provider)
+	options.Provider, err = options.GetCloudProvider(options.Provider)
 	if err != nil {
 		return err
 	}
@@ -271,7 +270,7 @@ PipelineSecrets:
 
 func (o *InstallOptions) getExposecontrollerConfigValues() (string, error) {
 	var err error
-	o.Domain, err = GetDomain(o.kubeClient, o.Domain)
+	o.Domain, err = o.GetDomain(o.kubeClient, o.Domain, o.Provider)
 	if err != nil {
 		return "", err
 	}
@@ -332,18 +331,18 @@ func (o *InstallOptions) getGitToken() (string, string, error) {
 		return "", "", err
 	}
 	if userAuth.IsInvalid() {
-		gits.PrintGenerateAccessToken(server, o.Out)
+		gits.PrintCreateRepositoryGenerateAccessToken(server, o.Out)
 
 		// TODO could we guess this based on the users ~/.git for github?
 		defaultUserName := ""
-		err = config.EditUserAuth(&userAuth, defaultUserName, false)
+		err = config.EditUserAuth(userAuth, defaultUserName, false)
 		if err != nil {
 			return "", "", err
 		}
 
 		// TODO lets verify the auth works
 
-		err = authConfigSvc.SaveUserAuth(url, &userAuth)
+		err = authConfigSvc.SaveUserAuth(url, userAuth)
 		if err != nil {
 			return "", "", fmt.Errorf("Failed to store git auth configuration %s", err)
 		}

@@ -5,12 +5,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	cmdutil "github.com/jenkins-x/jx/pkg/jx/cmd/util"
-	"path/filepath"
 	"fmt"
-	"io/ioutil"
-	"strings"
+	cmdutil "github.com/jenkins-x/jx/pkg/jx/cmd/util"
 	"github.com/jenkins-x/jx/pkg/util"
+	"io/ioutil"
+	"path/filepath"
+	"strings"
 )
 
 const (
@@ -54,20 +54,6 @@ func NewCmdStepNexus(f cmdutil.Factory, out io.Writer, errOut io.Writer) *cobra.
 // Run implements this command
 func (o *StepNexusOptions) Run() error {
 	return o.Cmd.Help()
-}
-
-// DoImport imports the project Stepd at the given directory
-func (o *StepNexusOptions) DoImport(outDir string) error {
-	if o.DisableImport {
-		return nil
-	}
-
-	importOptions := &ImportOptions{
-		CommonOptions:       o.CommonOptions,
-		Dir:                 outDir,
-		DisableDotGitSearch: true,
-	}
-	return importOptions.Run()
 }
 
 func (o *StepNexusOptions) findStagingRepoIds() ([]string, error) {

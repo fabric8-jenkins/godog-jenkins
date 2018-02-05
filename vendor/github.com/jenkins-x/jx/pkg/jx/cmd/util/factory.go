@@ -13,11 +13,11 @@ import (
 
 	"github.com/jenkins-x/golang-jenkins"
 	"github.com/jenkins-x/jx/pkg/auth"
-	"github.com/jenkins-x/jx/pkg/util"
 	"github.com/jenkins-x/jx/pkg/client/clientset/versioned"
+	"github.com/jenkins-x/jx/pkg/util"
+	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metricsclient "k8s.io/metrics/pkg/client/clientset_generated/clientset"
 
 	// this is so that we load the auth plugins so we can connect to, say, GCP
@@ -30,11 +30,13 @@ const (
 )
 
 type Factory interface {
-	GetJenkinsClient() (*gojenkins.Jenkins, error)
+	CreateJenkinsClient() (*gojenkins.Jenkins, error)
 
 	CreateAuthConfigService(fileName string) (auth.AuthConfigService, error)
 
 	CreateGitAuthConfigService() (auth.AuthConfigService, error)
+
+	CreateJenkinsAuthConfigService() (auth.AuthConfigService, error)
 
 	CreateClient() (*kubernetes.Clientset, string, error)
 
@@ -42,7 +44,7 @@ type Factory interface {
 
 	CreateApiExtensionsClient() (*apiextensionsclientset.Clientset, error)
 
- 	CreateMetricsClient() (*metricsclient.Clientset, error)
+	CreateMetricsClient() (*metricsclient.Clientset, error)
 
 	CreateTable(out io.Writer) table.Table
 }
@@ -58,8 +60,8 @@ func NewFactory() Factory {
 	return &factory{}
 }
 
-// GetJenkinsClient creates a new jenkins client
-func (f *factory) GetJenkinsClient() (*gojenkins.Jenkins, error) {
+// CreateJenkinsClient creates a new jenkins client
+func (f *factory) CreateJenkinsClient() (*gojenkins.Jenkins, error) {
 	url := os.Getenv("JENKINS_URL")
 	if url == "" {
 		// lets find the kubernets service
@@ -84,11 +86,23 @@ func (f *factory) GetJenkinsClient() (*gojenkins.Jenkins, error) {
 			}
 		}
 	}
-	svc, err := f.CreateAuthConfigService(jenkinsAuthConfigFile)
+	svc, err := f.CreateJenkinsAuthConfigService()
 	if err != nil {
 		return nil, err
 	}
 	return jenkins.GetJenkinsClient(url, f.Batch, &svc)
+}
+
+func (f *factory) CreateJenkinsAuthConfigService() (auth.AuthConfigService, error) {
+	authConfigSvc, err := f.CreateAuthConfigService(jenkinsAuthConfigFile)
+	if err != nil {
+		return authConfigSvc, err
+	}
+	_, err = authConfigSvc.LoadConfig()
+	if err != nil {
+		return authConfigSvc, err
+	}
+	return authConfigSvc, err
 }
 
 func (f *factory) CreateGitAuthConfigService() (auth.AuthConfigService, error) {
@@ -103,11 +117,11 @@ func (f *factory) CreateGitAuthConfigService() (auth.AuthConfigService, error) {
 
 	// lets add a default if there's none defined yet
 	if len(config.Servers) == 0 {
-		config.Servers = []auth.AuthServer{
+		config.Servers = []*auth.AuthServer{
 			{
 				Name:  "GitHub",
 				URL:   "github.com",
-				Users: []auth.UserAuth{},
+				Users: []*auth.UserAuth{},
 			},
 		}
 	}
