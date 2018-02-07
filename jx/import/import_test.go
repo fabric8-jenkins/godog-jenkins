@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/DATA-DOG/godog"
@@ -22,7 +23,8 @@ type importTest struct {
 }
 
 func (o *importTest) aDirectoryContainingASpringBootApplication() error {
-	tmpDir, err := ioutil.TempDir("", "test-jx-import-")
+	tempDirPrefix := "import-"
+	tmpDir, err := ioutil.TempDir("", tempDirPrefix)
 	if err != nil {
 		return err
 	}
@@ -38,6 +40,12 @@ func (o *importTest) aDirectoryContainingASpringBootApplication() error {
 		return err
 	}
 	assert.DirExists(o.Errors, o.WorkDir)
+	_, name := filepath.Split(o.WorkDir)
+	o.AppName = name
+	err = utils.ReplaceElement(filepath.Join(o.WorkDir, "pom.xml"), "artifactId", name, 1)
+	if err != nil {
+	  return err
+	}
 	return o.Errors.Error()
 }
 
