@@ -59,6 +59,7 @@ func (o *springTest) runningInThatDirectory(commandLine string) error {
 	if strings.HasPrefix(name, tempDirPrefix) {
 		name = "spring-" + strings.TrimPrefix(name, tempDirPrefix)
 	}
+	o.AppName = name
 	remaining = append(remaining, "--artifact", name, "--name", name)
 
 	err = utils.RunCommandInteractive(o.Interactive, o.WorkDir, cmd, remaining...)

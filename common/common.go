@@ -18,12 +18,16 @@ type CommonTest struct {
 	Interactive   bool
 	Errors        *utils.ErrorSlice
 	WorkDir       string
+	AppName		  string
 }
 
 // TheApplicationShouldBeBuiltAndPromotedViaCICD asserts that the project
 // should be created in Jenkins and that the build should complete successfully
 func (o *CommonTest) TheApplicationShouldBeBuiltAndPromotedViaCICD() error {
-	_, folderName := filepath.Split(o.WorkDir)
+	appName := o.AppName
+	if appName == "" {
+		_, appName = filepath.Split(o.WorkDir)
+	}
 	f := o.Factory
 	gitURL, err := o.GitProviderURL()
 	if err != nil {
@@ -48,7 +52,7 @@ func (o *CommonTest) TheApplicationShouldBeBuiltAndPromotedViaCICD() error {
 	if userName == "" {
 		return fmt.Errorf("Could not detect username for git server URL %s", gitURL)
 	}
-	jobName := userName + "/" + folderName + "/master"
+	jobName := userName + "/" + appName + "/master"
 	if o.JenkinsClient == nil {
 		client, err := f.CreateJenkinsClient()
 		if err != nil {
