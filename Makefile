@@ -52,7 +52,7 @@ test:
 
 create-gitea:
 	echo "Installing gitea addon with user $(GITEA_USER) email: $(GITEA_EMAIL)"
-	jx create addon gitea -b --username $(GITEA_USER) --password $(GITEA_PASSWORD) --email $(GITEA_EMAIL)
+	jx create addon gitea -b --headless --username $(GITEA_USER) --password $(GITEA_PASSWORD) --email $(GITEA_EMAIL)
 
 bdd-cluster: create-gitea jx-all
 
