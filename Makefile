@@ -34,6 +34,10 @@ CGO_ENABLED = 0
 
 VENDOR_DIR=vendor
 
+GITEA_USER ?= testuser
+GITEA_PASSWORD ?= testuser
+GITEA_EMAIL ?= testuser@acme.com
+
 all: test
 
 check: fmt test
@@ -42,8 +46,29 @@ check: fmt test
 #	CGO_ENABLED=$(CGO_ENABLED) $(GO) build $(BUILDFLAGS) -o build/$(NAME) $(NAME).go
 
 test:
+	cd jx && godog
 	cd github && godog
 	cd jenkins && godog
+
+create-gitea:
+	echo "Installing gitea addon with user $(GITEA_USER) email: $(GITEA_EMAIL)"
+	jx create addon gitea -b --headless --username $(GITEA_USER) --password $(GITEA_PASSWORD) --email $(GITEA_EMAIL)
+
+bdd-cluster: create-gitea jx-all
+
+bdd-github: jx/importurl/*.go
+	cd jx/importurl && godog
+
+jx-all: jx-import jx-spring
+
+jx-import: jx/import/*.go
+	cd jx/import && godog
+
+jx-spring: jx/spring/*.go
+	cd jx/spring && godog
+
+jx-import-existing: jx/import-existing/*.go
+	cd jx/import-existing && godog
 
 fmt:
 	@FORMATTED=`$(GO) fmt $(PACKAGE_DIRS)`

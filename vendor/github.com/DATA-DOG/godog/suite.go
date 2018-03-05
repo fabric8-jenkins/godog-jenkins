@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -21,8 +22,10 @@ var typeOfBytes = reflect.TypeOf([]byte(nil))
 
 type feature struct {
 	*gherkin.Feature
-	Content []byte `json:"-"`
-	Path    string `json:"path"`
+	Content   []byte `json:"-"`
+	Path      string `json:"path"`
+	scenarios map[int]bool
+	order     int
 }
 
 // ErrUndefined is returned in case if step definition was not found
@@ -422,8 +425,10 @@ func (s *Suite) runOutline(outline *gherkin.ScenarioOutline, b *gherkin.Backgrou
 		groups := example.TableBody
 
 		for _, group := range groups {
-			for _, f := range s.beforeScenarioHandlers {
-				f(outline)
+			if !isEmptyScenario(outline) {
+				for _, f := range s.beforeScenarioHandlers {
+					f(outline)
+				}
 			}
 			var steps []*gherkin.Step
 			for _, outlineStep := range outline.Steps {
@@ -490,8 +495,10 @@ func (s *Suite) runOutline(outline *gherkin.ScenarioOutline, b *gherkin.Backgrou
 
 			err := s.runSteps(steps)
 
-			for _, f := range s.afterScenarioHandlers {
-				f(outline, err)
+			if !isEmptyScenario(outline) {
+				for _, f := range s.afterScenarioHandlers {
+					f(outline, err)
+				}
 			}
 
 			if s.shouldFail(err) {
@@ -518,8 +525,10 @@ func (s *Suite) shouldFail(err error) bool {
 }
 
 func (s *Suite) runFeature(f *feature) {
-	for _, fn := range s.beforeFeatureHandlers {
-		fn(f.Feature)
+	if !isEmptyFeature(f.Feature) {
+		for _, fn := range s.beforeFeatureHandlers {
+			fn(f.Feature)
+		}
 	}
 
 	s.fmt.Feature(f.Feature, f.Path, f.Content)
@@ -538,8 +547,10 @@ func (s *Suite) runFeature(f *feature) {
 	}
 
 	defer func() {
-		for _, fn := range s.afterFeatureHandlers {
-			fn(f.Feature)
+		if !isEmptyFeature(f.Feature) {
+			for _, fn := range s.afterFeatureHandlers {
+				fn(f.Feature)
+			}
 		}
 	}()
 
@@ -564,6 +575,11 @@ func (s *Suite) runFeature(f *feature) {
 }
 
 func (s *Suite) runScenario(scenario *gherkin.Scenario, b *gherkin.Background) (err error) {
+	if isEmptyScenario(scenario) {
+		s.fmt.Node(scenario)
+		return ErrUndefined
+	}
+
 	// run before scenario handlers
 	for _, f := range s.beforeScenarioHandlers {
 		f(scenario)
@@ -607,16 +623,19 @@ func (s *Suite) printStepDefinitions(w io.Writer) {
 	}
 }
 
-func parseFeatures(filter string, paths []string) (features []*feature, err error) {
+func parseFeatures(filter string, paths []string) ([]*feature, error) {
+	byPath := make(map[string]*feature)
+	var order int
 	for _, pat := range paths {
 		// check if line number is specified
 		parts := strings.Split(pat, ":")
 		path := parts[0]
 		line := -1
+		var err error
 		if len(parts) > 1 {
 			line, err = strconv.Atoi(parts[1])
 			if err != nil {
-				return features, fmt.Errorf("line number should follow after colon path delimiter")
+				return nil, fmt.Errorf("line number should follow after colon path delimiter")
 			}
 		}
 		// parse features
@@ -632,40 +651,78 @@ func parseFeatures(filter string, paths []string) (features []*feature, err erro
 				if err != nil {
 					return fmt.Errorf("%s - %v", p, err)
 				}
-				features = append(features, &feature{Path: p, Feature: ft, Content: buf.Bytes()})
-				// filter scenario by line number
-				if line != -1 {
-					var scenarios []interface{}
-					for _, def := range ft.ScenarioDefinitions {
-						var ln int
-						switch t := def.(type) {
-						case *gherkin.Scenario:
-							ln = t.Location.Line
-						case *gherkin.ScenarioOutline:
-							ln = t.Location.Line
-						}
-						if ln == line {
-							scenarios = append(scenarios, def)
-							break
-						}
+
+				feat := byPath[p]
+				if feat == nil {
+					feat = &feature{
+						Path:      p,
+						Feature:   ft,
+						Content:   buf.Bytes(),
+						scenarios: make(map[int]bool),
+						order:     order,
 					}
-					ft.ScenarioDefinitions = scenarios
+					order++
+					byPath[p] = feat
 				}
-				applyTagFilter(filter, ft)
+				// filter scenario by line number
+				for _, def := range ft.ScenarioDefinitions {
+					var ln int
+					switch t := def.(type) {
+					case *gherkin.Scenario:
+						ln = t.Location.Line
+					case *gherkin.ScenarioOutline:
+						ln = t.Location.Line
+					}
+					if line == -1 || ln == line {
+						feat.scenarios[ln] = true
+					}
+				}
 			}
 			return err
 		})
 		// check error
 		switch {
 		case os.IsNotExist(err):
-			return features, fmt.Errorf(`feature path "%s" is not available`, path)
+			return nil, fmt.Errorf(`feature path "%s" is not available`, path)
 		case os.IsPermission(err):
-			return features, fmt.Errorf(`feature path "%s" is not accessible`, path)
+			return nil, fmt.Errorf(`feature path "%s" is not accessible`, path)
 		case err != nil:
-			return features, err
+			return nil, err
 		}
 	}
-	return
+	return filterFeatures(filter, byPath), nil
+}
+
+type sortByOrderGiven []*feature
+
+func (s sortByOrderGiven) Len() int           { return len(s) }
+func (s sortByOrderGiven) Less(i, j int) bool { return s[i].order < s[j].order }
+func (s sortByOrderGiven) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+
+func filterFeatures(tags string, collected map[string]*feature) (features []*feature) {
+	for _, ft := range collected {
+		var scenarios []interface{}
+		for _, def := range ft.ScenarioDefinitions {
+			var ln int
+			switch t := def.(type) {
+			case *gherkin.Scenario:
+				ln = t.Location.Line
+			case *gherkin.ScenarioOutline:
+				ln = t.Location.Line
+			}
+			if ft.scenarios[ln] {
+				scenarios = append(scenarios, def)
+			}
+		}
+		ft.ScenarioDefinitions = scenarios
+		applyTagFilter(tags, ft.Feature)
+
+		features = append(features, ft)
+	}
+
+	sort.Sort(sortByOrderGiven(features))
+
+	return features
 }
 
 func applyTagFilter(tags string, ft *gherkin.Feature) {

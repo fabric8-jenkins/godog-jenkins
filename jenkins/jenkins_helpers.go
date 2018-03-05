@@ -6,8 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fabric8-jenkins/golang-jenkins"
-	"github.com/fabric8-jenkins/godog-jenkins/utils"
+	"github.com/jenkins-x/godog-jenkins/utils"
+	"github.com/jenkins-x/golang-jenkins"
+)
+
+const (
+	maxWaitForBuildToStart     = 20 * time.Second
+	maxWaitForBuildToBeCreated = 50 * time.Second
+	maxWaitForBuildToComplete  = 40 * time.Minute
 )
 
 var jenkinsLogPrefix = utils.Color("\x1b[36m") + "        "
@@ -71,7 +77,7 @@ func TriggerAndWaitForBuildToFinish(jenkins *gojenkins.Jenkins, job gojenkins.Jo
 	if err != nil {
 		return build, err
 	}
-	if (!build.Building) {
+	if !build.Building {
 		return build, nil
 	}
 	return WaitForBuildToFinish(jenkins, job, build.Number, buildFinishWaitTime)
@@ -102,10 +108,10 @@ func WaitForBuildToFinish(jenkins *gojenkins.Jenkins, job gojenkins.Job, buildNu
 	writer := utils.NewPrefixWriter(os.Stdout, jenkinsLogPrefix)
 	logFn := jenkins.TailLogFunc(jenkins.GetBuildURL(job, buildNumber), writer)
 	/*
-	poller := jenkins.NewLogPoller(jenkins.GetBuildURL(job, buildNumber), os.Stdout)
-	logFn := func() (bool, error) {
-		return poller.Apply()
-	}
+		poller := jenkins.NewLogPoller(jenkins.GetBuildURL(job, buildNumber), os.Stdout)
+		logFn := func() (bool, error) {
+			return poller.Apply()
+		}
 	*/
 	fns := gojenkins.NewConditionFunc(fn, logFn)
 	err := gojenkins.Poll(1*time.Second, buildFinishWaitTime, fmt.Sprintf("job %s build #%d to finish", jobUrl, buildNumber), fns)
@@ -133,4 +139,62 @@ func AssertBuildSucceeded(build *gojenkins.Build, jobName string) error {
 	}
 	return fmt.Errorf("Job %s build %d has result %s", jobName, build.Number, result)
 
+}
+
+func GetJobByExpression(jobExpression string, jenkins *gojenkins.Jenkins) (job gojenkins.Job, err error) {
+	jobPath := utils.ReplaceEnvVars(jobExpression)
+
+	paths := strings.Split(jobPath, "/")
+	fullPath := gojenkins.FullJobPath(paths...)
+
+	job, err = jenkins.GetJobByPath(paths...)
+	if err != nil {
+		err = fmt.Errorf("Failed to find job %s due to %v", fullPath, err)
+	}
+	return
+}
+
+func ThereShouldBeAJobThatCompletesSuccessfully(jobExpression string, jenkins *gojenkins.Jenkins) error {
+	job, err := WaitForJobByExpression(jobExpression, maxWaitForBuildToBeCreated, jenkins)
+	if err != nil {
+		return err
+	}
+	lastBuild, err := jenkins.GetLastBuild(job)
+	var lastBuildNumber int
+	if err != nil {
+		if Is404(err) {
+			lastBuildNumber = 0
+		} else {
+			return fmt.Errorf("Failed to find last build for job %s due to %v\n", job.Name, err)
+		}
+	} else {
+		lastBuildNumber = lastBuild.Number
+	}
+	build, err := WaitForBuildToFinish(jenkins, job, lastBuildNumber, maxWaitForBuildToComplete)
+	if err != nil {
+		return err
+	}
+	return AssertBuildSucceeded(build, job.Url)
+}
+
+func WaitForJobByExpression(jobExpression string, timeout time.Duration, jenkins *gojenkins.Jenkins) (job gojenkins.Job, err error) {
+	jobPath := utils.ReplaceEnvVars(jobExpression)
+
+	paths := strings.Split(jobPath, "/")
+	fullPath := gojenkins.FullJobPath(paths...)
+
+	fn := func() (bool, error) {
+		job, err = jenkins.GetJobByPath(paths...)
+		if err != nil {
+			if !Is404(err) {
+				err = fmt.Errorf("Failed to find job %s due to %v", fullPath, err)
+				return false, err
+			}
+		} else {
+			return true, nil
+		}
+		return false, nil
+	}
+	err = gojenkins.Poll(1*time.Second, timeout, fmt.Sprintf("build to be created for %s", fullPath), fn)
+	return
 }

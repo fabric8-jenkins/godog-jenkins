@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fabric8-jenkins/golang-jenkins"
+	"github.com/jenkins-x/golang-jenkins"
 )
 
 func GetJenkinsClient() (*gojenkins.Jenkins, error) {

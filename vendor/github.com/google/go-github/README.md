@@ -210,6 +210,17 @@ For complete usage of go-github, see the full [package docs][].
 [GraphQL API v4]: https://developer.github.com/v4/
 [shurcooL/githubql]: https://github.com/shurcooL/githubql
 
+### Google App Engine ###
+
+Go on App Engine Classic (which as of this writing uses Go 1.6) can not use
+the `"context"` import and still relies on `"golang.org/x/net/context"`.
+As a result, if you wish to continue to use `go-github` on App Engine Classic,
+you will need to rewrite all the `"context"` imports using the following command:
+
+	gofmt -w -r '"context" -> "golang.org/x/net/context"' *.go
+
+See `with_appengine.go` for more details.
+
 ### Integration Tests ###
 
 You can run integration tests from the `test` directory. See the integration tests [README](test/README.md).
@@ -227,17 +238,28 @@ straightforward.
 [roadmap]: https://docs.google.com/spreadsheet/ccc?key=0ApoVX4GOiXr-dGNKN1pObFh6ek1DR2FKUjBNZ1FmaEE&usp=sharing
 [contributing]: CONTRIBUTING.md
 
+## Versioning ##
 
-## Google App Engine ##
+In general, go-github follows [semver](https://semver.org/) as closely as we
+can for tagging releases of the package. For self-contained libraries, the
+application of semantic versioning is relatively straightforward and generally
+understood. But because go-github is a client library for the GitHub API, which
+itself changes behavior, and because we are typically pretty aggressive about
+implementing preview features of the GitHub API, we've adopted the following
+versioning policy:
 
-Go on App Engine Classic (which as of this writing uses Go 1.6) can not use
-the `"context"` import and still relies on `"golang.org/x/net/context"`.
-As a result, if you wish to continue to use `go-github` on App Engine Classic,
-you will need to rewrite all the `"context"` imports using the following command:
+* We increment the **major version** with any incompatible change to
+	non-preview functionality, including changes to the exported Go API surface
+	or behavior of the API.
+* We increment the **minor version** with any backwards-compatible changes to
+	functionality, as well as any changes to preview functionality in the GitHub
+	API. GitHub makes no guarantee about the stability of preview functionality,
+	so neither do we consider it a stable part of the go-github API.
+* We increment the **patch version** with any backwards-compatible bug fixes.
 
-	gofmt -w -r '"context" -> "golang.org/x/net/context"' *.go
-
-See `with_appengine.go` for more details.
+Preview functionality may take the form of entire methods or simply additional
+data returned from an otherwise non-preview method. Refer to the GitHub API
+documentation for details on preview functionality.
 
 ## License ##
 
