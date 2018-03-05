@@ -56,6 +56,9 @@ create-gitea:
 
 bdd-cluster: create-gitea jx-all
 
+bdd-github: jx/importurl/*.go
+	cd jx/importurl && godog
+
 jx-all: jx-import jx-spring
 
 jx-import: jx/import/*.go
@@ -63,6 +66,9 @@ jx-import: jx/import/*.go
 
 jx-spring: jx/spring/*.go
 	cd jx/spring && godog
+
+jx-import-existing: jx/import-existing/*.go
+	cd jx/import-existing && godog
 
 fmt:
 	@FORMATTED=`$(GO) fmt $(PACKAGE_DIRS)`

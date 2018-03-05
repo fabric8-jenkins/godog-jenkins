@@ -9,6 +9,7 @@ import (
 	"github.com/jenkins-x/godog-jenkins/utils"
 	"github.com/jenkins-x/golang-jenkins"
 	cmdutil "github.com/jenkins-x/jx/pkg/jx/cmd/util"
+	"github.com/jenkins-x/jx/pkg/gits"
 )
 
 
@@ -64,13 +65,59 @@ func (o *CommonTest) TheApplicationShouldBeBuiltAndPromotedViaCICD() error {
 	return jenkins.ThereShouldBeAJobThatCompletesSuccessfully(jobName, o.JenkinsClient)
 }
 
-// GitProviderURL returns the git provider to use
+// TheGitInfoShouldHaveAJobAndShouldBeBuiltAndPromotedViaCICD asserts that the project
+// should be created in Jenkins and that the build should complete successfully
+func (o *CommonTest) TheGitInfoShouldHaveAJobAndShouldBeBuiltAndPromotedViaCICD() error {
+	url, err := gits.DiscoverRemoteGitURL(filepath.Join(o.WorkDir, ".git/config"))
+	if err != nil {
+	  return err
+	}
+	if url == "" {
+		return fmt.Errorf("Could not discover the remote git URL")
+	}
+	gitInfo, err := gits.ParseGitURL(url)
+	if err != nil {
+	  return err
+	}
+
+	owner := gitInfo.Organisation
+	repo := gitInfo.Name
+	if owner == "" {
+		return fmt.Errorf("Could not find owner from GitInfo %#v from URL %s", gitInfo, url)
+	}
+	if repo == "" {
+		return fmt.Errorf("Could not find repo name from GitInfo %#v from URL %s", gitInfo, url)
+	}
+	jobName := owner +"/" + repo + "/master"
+	if o.JenkinsClient == nil {
+		client, err := o.Factory.CreateJenkinsClient()
+		if err != nil {
+		  return err
+		}
+		o.JenkinsClient = client
+	}
+	fmt.Printf("Checking that there is a job built successfully for %s\n", jobName)
+	return jenkins.ThereShouldBeAJobThatCompletesSuccessfully(jobName, o.JenkinsClient)
+}
+
+// GitProviderURLOrEmpty returns the git provider to use based on the environment variable
+// `GIT_PROVIDER_URL` or returns the empty string
+func (o *CommonTest) GitProviderURLOrEmpty() (string, error) {
+	gitProviderURL := os.Getenv("GIT_PROVIDER_URL")
+	if gitProviderURL != "" {
+		return gitProviderURL, nil
+	}
+	return "", nil
+}
+
+// GitProviderURL returns the git provider URL to use based on the environment variable
+// `GIT_PROVIDER_URL` or returns the default server's URL
 func (o *CommonTest) GitProviderURL() (string, error) {
 	gitProviderURL := os.Getenv("GIT_PROVIDER_URL")
 	if gitProviderURL != "" {
 		return gitProviderURL, nil
 	}
-	// find the default  load the default one from the current ~/.jx/jenkinsAuth.yaml
+	// find the default load the default one from the current ~/.jx/jenkinsAuth.yaml
 	authConfigSvc, err := o.Factory.CreateGitAuthConfigService()
 	if err != nil {
 		return "", err
